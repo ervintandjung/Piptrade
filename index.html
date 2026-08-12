@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Phoenix // Forex Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #080b16;
+    --bg-2: #0c1120;
+    --card: #111830;
+    --card-2: #16203c;
+    --line: rgba(255,255,255,0.07);
+    --line-2: rgba(255,255,255,0.12);
+    --blue: #4d7dff;
+    --blue-soft: rgba(77,125,255,0.14);
+    --up: #22c58b;
+    --up-soft: rgba(34,197,139,0.14);
+    --down: #f2555a;
+    --down-soft: rgba(242,85,90,0.14);
+    --amber: #f0b429;
+    --text: #eef1f8;
+    --text-dim: #8b93ad;
+    --radius: 18px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family:'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body{
+    background-image:
+      radial-gradient(120% 60% at 0% 0%, rgba(77,125,255,0.16), transparent 60%),
+      radial-gradient(90% 50% at 100% 8%, rgba(120,80,255,0.10), transparent 60%);
+    background-attachment: fixed;
+    padding-bottom: 96px;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  ::-webkit-scrollbar{ width:0; height:0; }
+
+  .wrap{ max-width: 480px; margin: 0 auto; padding: 0 16px; }
+
+  header{
+    position: sticky; top:0; z-index: 40;
+    background: rgba(8,11,22,0.82);
+    backdrop-filter: blur(14px);
+    padding: 14px 0 12px;
+  }
+  .head-row{ display:flex; align-items:center; justify-content:space-between; }
+  .brand{ font-size: 17px; font-weight: 800; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px; }
+  .brand i{
+    width:26px; height:26px; border-radius:9px; display:grid; place-items:center;
+    background: linear-gradient(140deg, var(--blue), #8b5cf6); font-style:normal; font-size:13px;
+  }
+  .clock{ font-size:11px; color: var(--text-dim); display:flex; align-items:center; gap:6px; }
+  .live-dot{
+    width:7px; height:7px; border-radius:50%; background: var(--up);
+    animation: pulse 1.8s infinite; display:inline-block;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(34,197,139,0.5); }
+    70%{ box-shadow: 0 0 0 8px rgba(34,197,139,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(34,197,139,0); }
+  }
+  .page-title{ font-size: 22px; font-weight: 700; letter-spacing:-0.4px; }
+
+  main{ padding-top: 6px; }
+  .view-panel{ display:none; flex-direction:column; gap:18px; }
+  .view-panel.active-view{ display:flex; }
+
+  .card{
+    background: linear-gradient(160deg, var(--card), var(--bg-2));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow:hidden;
+  }
+  .card-pad{ padding: 16px; }
+
+  /* ==== hero price ==== */
+  .hero-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 16px 16px 6px; }
+  .hero-name{ display:flex; align-items:center; gap:8px; font-size: 14px; font-weight: 700; }
+  .hero-name .dot{ width:8px; height:8px; border-radius:50%; background: var(--up); }
+  .hero-badge{ font-size:10px; color: var(--text-dim); border:1px solid var(--line-2); padding:3px 9px; border-radius: 99px; }
+  .hero-price{ padding: 0 16px 2px; font-size: 27px; font-weight: 800; letter-spacing:-0.6px; }
+  .hero-change{ padding: 0 16px 12px; font-size: 12.5px; font-weight:600; color: var(--up); }
+  .hero-change.down{ color: var(--down); }
+  .hero-chart{ height: 240px; }
+
+  /* ==== section head ==== */
+  .sec-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom: 10px; }
+  .sec-title{ font-size: 15.5px; font-weight: 700; }
+  .sec-link{ font-size: 12px; color: var(--blue); font-weight:600; cursor:pointer; }
+
+  /* ==== signal card ==== */
+  .sig-list{ display:flex; flex-direction:column; gap: 10px; }
+  .sig-card{
+    position:relative; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: linear-gradient(150deg, var(--card), var(--bg-2));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 13px 14px 13px 18px;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .sig-card:active{ transform: scale(0.985); }
+  .sig-card.live{ border-color: rgba(77,125,255,0.45); box-shadow: 0 0 0 1px rgba(77,125,255,0.12), 0 8px 24px -14px rgba(77,125,255,0.8); }
+  .sig-card::before{
+    content:''; position:absolute; left:7px; top:12px; bottom:12px; width:3px; border-radius:99px; background: var(--up);
+  }
+  .sig-card.sell::before{ background: var(--down); }
+  .sig-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .tag{
+    font-size: 10px; font-weight: 800; letter-spacing:.6px;
+    padding: 4px 9px; border-radius: 8px;
+    color: var(--up); background: var(--up-soft);
+  }
+  .tag.sell{ color: var(--down); background: var(--down-soft); }
+  .sig-pair{ font-size: 14px; font-weight: 700; }
+  .sig-sub{ font-size: 10.5px; color: var(--text-dim); margin-top: 3px; display:flex; align-items:center; gap:5px; }
+  .sig-right{ text-align:right; flex-shrink:0; }
+  .sig-price{ font-family:'IBM Plex Mono', monospace; font-size: 14px; font-weight:600; }
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; margin-top:6px;
+    font-size: 9.5px; font-weight:700; letter-spacing:.4px;
+    padding: 3px 9px; border-radius: 99px;
+    color: var(--text-dim); background: rgba(255,255,255,0.05);
+  }
+  .pill.live{ color:#cddaff; background: rgba(77,125,255,0.18); }
+  .pill.live::before{ content:''; width:5px; height:5px; border-radius:50%; background: var(--blue); }
+  .pill.win{ color: var(--up); background: var(--up-soft); }
+  .pill.loss{ color: var(--down); background: var(--down-soft); }
+  .pill.be{ color:#9fb2e8; background: rgba(159,178,232,0.12); }
+
+  .empty{ padding: 26px 14px; text-align:center; font-size: 12px; color: var(--text-dim); }
+
+  /* ==== promo ==== */
+  .promo{
+    display:flex; align-items:center; gap:12px; padding: 14px;
+    background: linear-gradient(120deg, rgba(77,125,255,0.16), rgba(139,92,246,0.10));
+    border: 1px solid rgba(77,125,255,0.24); border-radius: 16px;
+  }
+  .promo i{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background: rgba(255,255,255,0.08); font-style:normal; font-size:18px; }
+  .promo b{ display:block; font-size: 13.5px; }
+  .promo span{ display:block; font-size: 11px; color: var(--text-dim); margin-top:3px; }
+
+  /* ==== chips ==== */
+  .chips{ display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; }
+  .chip{
+    flex-shrink:0; font-size: 11.5px; font-weight:600;
+    padding: 8px 14px; border-radius: 99px;
+    color: var(--text-dim); background: rgba(255,255,255,0.05);
+    border: 1px solid transparent; cursor:pointer;
+  }
+  .chip.active{ color:#fff; background: var(--blue); border-color: var(--blue); }
+  .filter-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom: 4px; }
+  .filter-chip{ font-size: 10.5px; letter-spacing:1px; font-weight:700; color: var(--text-dim); text-transform:uppercase; }
+  .count-chip{ font-size: 10.5px; padding: 3px 10px; border-radius:99px; background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+  /* ==== detail ==== */
+  .detail-head{ display:flex; align-items:center; gap:10px; margin-bottom: 14px; }
+  .back-btn{ font-size: 18px; color: var(--text); cursor:pointer; line-height:1; }
+  .detail-title{ font-size: 16px; font-weight: 700; }
+  .detail-id-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px; }
+  .detail-id{ display:flex; align-items:center; gap:10px; }
+  .detail-pair{ font-size: 20px; font-weight: 800; letter-spacing:-0.3px; }
+  .status-chip{ font-size: 10px; font-weight:700; letter-spacing:.6px; padding: 5px 11px; border-radius:99px; border:1px solid var(--line-2); color: var(--text-dim); }
+  .status-chip.on{ color:#cddaff; border-color: rgba(77,125,255,0.5); }
+  .kv-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 18px 12px; margin-bottom: 18px; }
+  .kv label{ display:block; font-size: 9.5px; letter-spacing:1px; color: var(--text-dim); text-transform:uppercase; margin-bottom: 6px; }
+  .kv b{ font-size: 19px; font-weight: 700; letter-spacing:-0.3px; }
+  .kv b.red{ color: var(--down); }
+  .kv b.blue{ color: var(--blue); }
+  .tp-card{ padding: 4px 0; }
+  .tp-row{ display:flex; align-items:center; justify-content:space-between; padding: 11px 16px; font-size: 12.5px; }
+  .tp-row + .tp-row{ border-top: 1px solid var(--line); }
+  .tp-row span{ color: var(--text-dim); font-family:'IBM Plex Mono', monospace; }
+  .tp-row b{ color: var(--up); font-weight:600; }
+  .tp-row.hit span{ color: var(--text); }
+  .chart-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+  .chart-card-head b{ font-size: 13px; }
+  .chart-card-head span{ font-family:'IBM Plex Mono', monospace; font-size: 13px; }
+  .mini-chart{ width:100%; height: 190px; display:block; }
+  .tf-row{ display:flex; gap:7px; margin-top: 12px; }
+  .tf-btn{ font-size: 11px; font-weight:600; padding: 6px 13px; border-radius:99px; background: rgba(255,255,255,0.05); color: var(--text-dim); cursor:pointer; }
+  .tf-btn.active{ background: var(--blue); color:#fff; }
+  .detail-foot{ font-size: 11.5px; color: var(--text-dim); line-height:1.7; }
+  .detail-foot b{ color: var(--text); font-weight:600; }
+
+  /* ==== generic bits reused ==== */
+  .note{
+    font-size: 11.5px; color: var(--text-dim); line-height:1.65;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .note b{ color: var(--text); }
+  .sub-tabs{ display:flex; gap:7px; overflow-x:auto; }
+  .conf-row{ display:flex; align-items:center; gap:10px; margin-bottom: 14px; }
+  .conf-bar{ flex:1; height:7px; border-radius:99px; background: rgba(255,255,255,0.07); overflow:hidden; }
+  .conf-fill{ height:100%; width:0%; border-radius:99px; background: var(--blue); transition: width .5s ease; }
+  .conf-fill.buy{ background: var(--up); } .conf-fill.sell{ background: var(--down); }
+  .conf-num{ font-size: 11.5px; font-weight:700; min-width:78px; text-align:right; }
+  .verdict{ font-size: 20px; font-weight:800; letter-spacing:.4px; padding: 6px 14px; border-radius: 12px; background: rgba(255,255,255,0.06); color: var(--text-dim); }
+  .verdict.buy{ color: var(--up); background: var(--up-soft); }
+  .verdict.sell{ color: var(--down); background: var(--down-soft); }
+  .flags{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 14px; }
+  .flag{ font-size:9.5px; font-weight:600; letter-spacing:.4px; padding:4px 9px; border-radius:99px; background: rgba(255,255,255,0.05); color: var(--text-dim); }
+  .flag.up{ color: var(--up); background: var(--up-soft); }
+  .flag.down{ color: var(--down); background: var(--down-soft); }
+  .flag.on{ color: var(--amber); background: rgba(240,180,41,0.12); }
+  .subhead{ font-size: 9.5px; letter-spacing:1px; text-transform:uppercase; color: var(--text-dim); margin: 0 0 9px; }
+  .reasons{ list-style:none; display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; }
+  .reasons li{ font-size: 11.5px; line-height:1.55; display:flex; gap:8px; }
+  .reasons .rdot{ width:6px; height:6px; border-radius:50%; margin-top:5px; flex:0 0 6px; background: var(--text-dim); }
+  .reasons li.up .rdot{ background: var(--up); } .reasons li.down .rdot{ background: var(--down); }
+  .reasons b{ color: var(--blue); font-weight:700; }
+  .ind-table{ display:grid; grid-template-columns: repeat(2,1fr); gap:1px; background: var(--line); border-radius: 14px; overflow:hidden; margin-bottom: 14px; }
+  .ind-cell{ background: var(--bg-2); padding: 10px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .ind-cell span{ font-size: 9.5px; letter-spacing:.5px; color: var(--text-dim); }
+  .ind-cell b{ font-size: 11.5px; font-family:'IBM Plex Mono', monospace; }
+  .ind-cell b.up{ color: var(--up); } .ind-cell b.down{ color: var(--down); }
+  .stats{ display:flex; gap:9px; }
+  .stat{ flex:1; background: rgba(255,255,255,0.04); border:1px solid var(--line); border-radius: 14px; padding: 12px 6px; text-align:center; }
+  .stat span{ display:block; font-size: 18px; font-weight:800; }
+  .stat label{ display:block; font-size: 9.5px; color: var(--text-dim); margin-top: 3px; }
+  .field{ margin-bottom: 12px; }
+  .field label{ display:block; font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+  .field input[type=number]{
+    width:100%; background: rgba(255,255,255,0.04); border:1px solid var(--line-2); color: var(--text);
+    font-family:'IBM Plex Mono', monospace; font-size: 14px; padding: 11px 12px; border-radius: 12px;
+  }
+  .field input:focus{ outline:none; border-color: var(--blue); }
+  .check{ display:flex; align-items:flex-start; gap:8px; font-size: 11.5px; color: var(--text-dim); margin-bottom: 12px; line-height:1.5; }
+  .lot-row{ display:flex; gap:8px; align-items:center; }
+  .lot-btn{ width:42px; height:42px; flex-shrink:0; border:1px solid var(--line-2); background: rgba(255,255,255,0.05); color: var(--text); font-size:18px; border-radius: 12px; cursor:pointer; }
+  .lot-presets{ display:flex; gap:6px; margin-top: 8px; }
+  .lot-preset{ flex:1; text-align:center; font-size: 11px; padding: 8px 4px; border-radius: 10px; background: rgba(255,255,255,0.05); color: var(--text-dim); cursor:pointer; }
+  .lot-preset.active{ background: var(--blue); color:#fff; }
+  .btn-primary{
+    width:100%; margin-top: 6px; border:none; cursor:pointer;
+    background: linear-gradient(120deg, var(--blue), #7a5cf0); color:#fff;
+    font-family:'Plus Jakarta Sans', sans-serif; font-size: 13.5px; font-weight:700;
+    padding: 13px; border-radius: 14px;
+  }
+  .calc-result{ margin-top: 16px; padding: 16px; text-align:center; background: var(--down-soft); border:1px solid rgba(242,85,90,0.3); border-radius: 14px; }
+  .calc-result-label{ font-size: 10px; letter-spacing:1px; color: var(--down); margin-bottom: 6px; }
+  .calc-result-value{ font-size: 26px; font-weight:800; color: var(--down); }
+  .calc-result-pct{ font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .calc-warning{ font-size: 11.5px; color: var(--down); margin-top: 10px; font-weight:600; line-height:1.5; }
+  .acc-hero{ text-align:center; padding: 20px 16px; }
+  .acc-hero label{ font-size: 9.5px; letter-spacing:1px; color: var(--text-dim); }
+  .acc-hero div{ font-size: 36px; font-weight:800; color: var(--blue); margin-top: 6px; letter-spacing:-1px; }
+  .acc-hero small{ font-size: 11.5px; color: var(--text-dim); }
+  .locked{ text-align:center; padding: 40px 20px; }
+  .locked i{ font-size: 30px; font-style:normal; }
+  .locked b{ display:block; margin-top: 12px; font-size: 15px; }
+  .locked span{ display:block; margin-top: 6px; font-size: 12px; color: var(--text-dim); line-height:1.6; }
+  .foot{ padding: 22px 4px 10px; text-align:center; font-size: 10.5px; color: var(--text-dim); line-height:1.7; }
+
+  /* ==== bottom nav ==== */
+  .bottom-nav{
+    position: fixed; bottom:0; left:0; right:0; z-index: 100; display:flex;
+    background: rgba(9,12,24,0.94); backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+    padding: 9px 4px calc(9px + env(safe-area-inset-bottom, 0px));
+  }
+  .nav-item{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding: 4px 2px; cursor:pointer; color: var(--text-dim); }
+  .nav-item svg{ width:21px; height:21px; stroke: currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .nav-label{ font-size: 9.5px; font-weight:600; }
+  .nav-item.active{ color: var(--blue); }
+  iframe{ border:none; width:100%; display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head-row">
+    <div class="brand"><i>P</i>Phoenix</div>
+    <div class="clock"><span class="live-dot"></span><span id="clock-text">--:--:--</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= BERANDA ================= -->
+<div class="view-panel" data-view="home">
+  <div class="card">
+    <div class="hero-top">
+      <div class="hero-name"><span class="dot"></span><span id="heroName">Emas / Dollar A.S.</span></div>
+      <div class="hero-badge" id="heroTf">15M · LIVE</div>
+    </div>
+    <div class="hero-price" id="heroPrice">–</div>
+    <div class="hero-change" id="heroChange">–</div>
+    <div class="hero-chart" id="heroChart"></div>
+  </div>
+
+  <div class="chips" id="homePairChips"></div>
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">Signal Terbaru</div>
+      <div class="sec-link" data-goto="signal">Lihat semua</div>
+    </div>
+    <div class="sig-list" id="homeSignals"><div class="empty">Menganalisis pasar — sinyal pertama lagi disiapin.</div></div>
+  </section>
+
+  <div class="promo">
+    <i>🎬</i>
+    <div>
+      <b>Video Campaign</b>
+      <span>Bikin konten TikTok/IG dari sinyal harian kamu.</span>
+    </div>
+  </div>
+
+  <div class="note">
+    Ini dashboard baca chart, bukan saran trading. Semua level entry/SL/TP dihitung otomatis dari indikator — keputusan tetap di tangan kamu.
+  </div>
+</div>
+
+<!-- ================= SIGNAL ================= -->
+<div class="view-panel" data-view="signal">
+  <div id="signalListView">
+    <div class="page-title" style="margin-bottom:14px;">Signal</div>
+    <div class="filter-row">
+      <span class="filter-chip">HARI INI</span>
+      <span class="count-chip" id="sigCount">0 sinyal</span>
+    </div>
+    <div class="sig-list" id="signalList" style="margin-top:14px;"><div class="empty">Belum ada sinyal hari ini.</div></div>
+  </div>
+
+  <div id="signalDetailView" style="display:none;">
+    <div class="detail-head">
+      <div class="back-btn" id="detailBack">‹</div>
+      <div class="detail-title">Detail Signal</div>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ================= INDIKATOR ================= -->
+<div class="view-panel" data-view="indicator">
+  <div class="page-title" style="margin-bottom:12px;">Indikator</div>
+  <div class="sub-tabs chips" id="indTabs">
+    <div class="chip active" data-sub="engine">Analisa</div>
+    <div class="chip" data-sub="watchlist">Watchlist</div>
+    <div class="chip" data-sub="calendar">Kalender</div>
+    <div class="chip" data-sub="calc">Kalkulator</div>
+  </div>
+
+  <div class="sub-panel" data-sub="engine" style="display:flex; flex-direction:column; gap:14px;">
+    <div class="note">Mesin analisa sendiri: baca candle live lalu hitung <b>EMA9/21/50, RSI14, MACD, Stochastic, Bollinger, ATR14, ADX14</b> + support/resistance, dan cek multi-timeframe 15m vs 1H.</div>
+    <div class="chips" id="sigPairSelect"></div>
+    <div class="card card-pad">
+      <div id="sigLoading" style="text-align:center;font-size:12px;color:var(--text-dim);padding:26px 0;">Menganalisis chart...</div>
+      <div id="sigBody" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="verdict" id="sigBadge">NEUTRAL</div>
+          <div style="font-size:10px;color:var(--text-dim);" id="sigUpdated">–</div>
+        </div>
+        <div class="conf-row">
+          <div class="conf-bar"><div class="conf-fill" id="sigConfFill"></div></div>
+          <div class="conf-num" id="sigConfNum">–</div>
+        </div>
+        <div class="flags" id="sigFlags"></div>
+        <div class="subhead">Alasan analisis</div>
+        <ul class="reasons" id="sigReasons"></ul>
+        <div class="subhead">Nilai indikator live</div>
+        <div class="ind-table" id="sigIndTable"></div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.65;" id="sigDetail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-panel" data-sub="watchlist" style="display:none; flex-direction:column; gap:14px;">
+    <div class="card" id="wlCross"></div>
+    <div class="card" id="wlQuotes"></div>
+  </div>
+
+  <div class="sub-panel" data-sub="calendar" style="display:none; flex-direction:column; gap:14px;">
+    <div class="card" id="calWidget"></div>
+  </div>
+
+  <div class="sub-panel" data-sub="calc" style="display:none; flex-direction:column; gap:14px;">
+    <div class="note">Cek dulu resiko lot kamu sebelum entry.</div>
+    <div class="card card-pad">
+      <div class="field">
+        <label>Modal / Equity Akun (USD)</label>
+        <input type="number" id="calcEquity" placeholder="cth: 50" value="50" step="0.01">
+      </div>
+      <label class="check"><input type="checkbox" id="calcCent"> Akun Cent (equity di atas dianggap cent, otomatis dibagi 100)</label>
+      <div class="field">
+        <label>Harga Entry</label>
+        <input type="number" id="calcEntry" placeholder="cth: 1.15400" step="0.00001">
+      </div>
+      <div class="field">
+        <label>Harga Stop Loss</label>
+        <input type="number" id="calcSL" placeholder="cth: 1.15300" step="0.00001">
+      </div>
+      <div class="field">
+        <label>Ukuran Lot</label>
+        <div class="lot-row">
+          <button class="lot-btn" id="lotMinus">–</button>
+          <input type="number" id="calcLot" value="0.01" step="0.01" min="0.01">
+          <button class="lot-btn" id="lotPlus">+</button>
+        </div>
+        <div class="lot-presets">
+          <div class="lot-preset active" data-lot="0.01">0.01</div>
+          <div class="lot-preset" data-lot="0.05">0.05</div>
+          <div class="lot-preset" data-lot="0.10">0.10</div>
+          <div class="lot-preset" data-lot="0.50">0.50</div>
+          <div class="lot-preset" data-lot="1.00">1.00</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="calcRun">Hitung Resiko</button>
+      <div class="calc-result" id="calcResult" style="display:none;">
+        <div class="calc-result-label">JIKA KENA STOP LOSS</div>
+        <div class="calc-result-value" id="calcLossValue">–</div>
+        <div class="calc-result-pct" id="calcLossPct">–</div>
+        <div class="calc-warning" id="calcWarning"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHAT ================= -->
+<div class="view-panel" data-view="chat">
+  <div class="page-title" style="margin-bottom:12px;">Chat</div>
+  <div class="card locked">
+    <i>🔒</i>
+    <b>Room diskusi segera hadir</b>
+    <span>Fitur chat komunitas lagi disiapin. Sementara, pantau sinyal di tab Signal.</span>
+  </div>
+</div>
+
+<!-- ================= AKUN ================= -->
+<div class="view-panel" data-view="account">
+  <div class="page-title" style="margin-bottom:12px;">Akun</div>
+  <div class="chips" id="accPeriodSelect">
+    <div class="chip active" data-period="all">Semua</div>
+    <div class="chip" data-period="today">Hari Ini</div>
+    <div class="chip" data-period="week">Minggu Ini</div>
+    <div class="chip" data-period="month">Bulan Ini</div>
+  </div>
+  <div class="card">
+    <div class="acc-hero">
+      <label>SIGNAL SELESAI · WINRATE</label>
+      <div id="accWinrate">–</div>
+      <small id="accSub">– sinyal</small>
+    </div>
+    <div class="card-pad" style="padding-top:0;">
+      <div class="stats">
+        <div class="stat"><span id="accWin" style="color:var(--up)">0</span><label>Win</label></div>
+        <div class="stat"><span id="accLoss" style="color:var(--down)">0</span><label>Loss</label></div>
+        <div class="stat"><span id="accActive">0</span><label>Aktif</label></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="sec-head"><div class="sec-title">Semua Riwayat Sinyal</div></div>
+    <div class="sig-list" id="accHistList"><div class="empty">Belum ada riwayat.</div></div>
+  </div>
+  <div class="foot">Data chart disuplai oleh TradingView · analisa dihitung sendiri di browser kamu.</div>
+</div>
+
+</main>
+
+<nav class="bottom-nav">
+  <div class="nav-item active" data-view="home">
+    <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    <div class="nav-label">Beranda</div>
+  </div>
+  <div class="nav-item" data-view="signal">
+    <svg viewBox="0 0 24 24"><path d="M8 3v18"/><circle cx="8" cy="9" r="2.4"/><path d="M16 3v18"/><circle cx="16" cy="15" r="2.4"/></svg>
+    <div class="nav-label">Signal</div>
+  </div>
+  <div class="nav-item" data-view="chat">
+    <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8Z"/></svg>
+    <div class="nav-label">Chat</div>
+  </div>
+  <div class="nav-item" data-view="indicator">
+    <svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 5-8 4 5"/></svg>
+    <div class="nav-label">Indikator</div>
+  </div>
+  <div class="nav-item" data-view="account">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4S18.3 16.4 19.5 20"/></svg>
+    <div class="nav-label">Akun</div>
+  </div>
+</nav>
+
+<script>
+  /* ===================== CLOCK ===================== */
+  function updateClock(){
+    const now = new Date();
+    document.getElementById('clock-text').textContent =
+      now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour12:false }) + ' WIB';
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  /* ===================== PAIRS ===================== */
+  const PAIRS = [
+    { label:'XAU/USD', name:'Emas / Dollar A.S.', sym:'GC=F',     kind:'fx',     tv:'OANDA:XAUUSD',    pip:0.1 },
+    { label:'BTC/USDT',name:'Bitcoin / USDT',     sym:'BTCUSDT',  kind:'crypto', tv:'BINANCE:BTCUSDT', pip:1 },
+    { label:'ETH/USDT',name:'Ethereum / USDT',    sym:'ETHUSDT',  kind:'crypto', tv:'BINANCE:ETHUSDT', pip:0.1 },
+    { label:'SOL/USDT',name:'Solana / USDT',      sym:'SOLUSDT',  kind:'crypto', tv:'BINANCE:SOLUSDT', pip:0.01 },
+    { label:'XRP/USDT',name:'XRP / USDT',         sym:'XRPUSDT',  kind:'crypto', tv:'BINANCE:XRPUSDT', pip:0.0001 },
+    { label:'EUR/USD', name:'Euro / Dollar A.S.', sym:'EURUSD=X', kind:'fx',     tv:'FX:EURUSD',       pip:0.0001 },
+    { label:'GBP/USD', name:'Pound / Dollar A.S.',sym:'GBPUSD=X', kind:'fx',     tv:'FX:GBPUSD',       pip:0.0001 },
+    { label:'USD/JPY', name:'Dollar A.S. / Yen',  sym:'USDJPY=X', kind:'fx',     tv:'FX:USDJPY',       pip:0.01 }
+  ];
+  let activePair = PAIRS[0];
+
+  function fmtPrice(v){
+    if(!isFinite(v)) return '–';
+    const a = Math.abs(v);
+    if(a >= 1000) return v.toFixed(3);
+    if(a >= 100) return v.toFixed(3);
+    if(a >= 1) return v.toFixed(4);
+    return v.toFixed(6);
+  }
+  function fmtNum(v){
+    if(!isFinite(v)) return '–';
+    return Number(v.toFixed(Math.abs(v) >= 100 ? 3 : 5)).toLocaleString('en-US', {minimumFractionDigits: Math.abs(v)>=100?3:5});
+  }
+  function pipsBetween(a, b, pair){ return Math.round(Math.abs(a-b) / pair.pip); }
+
+  function sessionNow(){
+    const h = parseInt(new Date().toLocaleString('en-GB', { timeZone:'Asia/Jakarta', hour:'2-digit', hour12:false }), 10);
+    if(h >= 5 && h < 14) return 'Tokyo';
+    if(h >= 14 && h < 21) return 'London';
+    return 'New York';
+  }
+
+  /* ===================== NAV ===================== */
+  function switchView(view){
+    document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active-view', p.dataset.view === view));
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.view === view));
+    window.scrollTo({ top:0, behavior:'instant' });
+    if(view === 'account') renderAccountPage();
+    if(view === 'signal') closeDetail();
+  }
+  document.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => switchView(i.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => switchView(el.dataset.goto)));
+  switchView('home');
+
+  document.querySelectorAll('#indTabs .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#indTabs .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      document.querySelectorAll('.sub-panel').forEach(p => p.style.display = p.dataset.sub === chip.dataset.sub ? 'flex' : 'none');
+      if(chip.dataset.sub === 'watchlist') mountWatchlist();
+      if(chip.dataset.sub === 'calendar') mountCalendar();
+    });
+  });
+
+  /* ===================== TRADINGVIEW EMBEDS ===================== */
+  function tvWidget(target, src, cfg, height){
+    target.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'tradingview-widget-container';
+    wrap.style.height = height || '100%';
+    const inner = document.createElement('div');
+    inner.className = 'tradingview-widget-container__widget';
+    inner.style.height = '100%';
+    wrap.appendChild(inner);
+    const s = document.createElement('script');
+    s.type = 'text/javascript'; s.async = true; s.src = src; s.text = JSON.stringify(cfg);
+    wrap.appendChild(s);
+    target.appendChild(wrap);
+  }
+
+  function loadHeroChart(){
+    tvWidget(document.getElementById('heroChart'),
+      'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js', {
+        autosize:true, symbol: activePair.tv, interval:'15', timezone:'Asia/Jakarta',
+        theme:'dark', style:'1', locale:'in', hide_top_toolbar:true, hide_legend:true,
+        hide_side_toolbar:true, allow_symbol_change:false, withdateranges:false,
+        details:false, hotlist:false, calendar:false, save_image:false,
+        backgroundColor:'#0c1120', gridColor:'rgba(255,255,255,0.05)',
+        support_host:'https://www.tradingview.com'
+      });
+  }
+
+  let wlMounted = false, calMounted = false;
+  function mountWatchlist(){
+    if(wlMounted) return; wlMounted = true;
+    tvWidget(document.getElementById('wlCross'), 'https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js',
+      { width:'100%', height:400, currencies:['EUR','USD','JPY','GBP','AUD','CHF','CAD','NZD'], isTransparent:true, colorTheme:'dark', locale:'in' }, '400px');
+    tvWidget(document.getElementById('wlQuotes'), 'https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js',
+      { width:'100%', height:440, isTransparent:true, colorTheme:'dark', locale:'in', showSymbolLogo:true,
+        symbolsGroups:[
+          { name:'Major Pairs', originalName:'Major Pairs', symbols:[
+            {name:'FX:EURUSD',displayName:'EUR/USD'},{name:'FX:GBPUSD',displayName:'GBP/USD'},{name:'FX:USDJPY',displayName:'USD/JPY'},
+            {name:'FX:AUDUSD',displayName:'AUD/USD'},{name:'FX:USDCHF',displayName:'USD/CHF'},{name:'FX:USDCAD',displayName:'USD/CAD'}]},
+          { name:'Metals & Crypto', originalName:'Metals & Crypto', symbols:[
+            {name:'OANDA:XAUUSD',displayName:'Gold'},{name:'OANDA:XAGUSD',displayName:'Silver'},
+            {name:'BINANCE:BTCUSDT',displayName:'Bitcoin'},{name:'BINANCE:ETHUSDT',displayName:'Ethereum'}]}
+        ] }, '440px');
+  }
+  function mountCalendar(){
+    if(calMounted) return; calMounted = true;
+    tvWidget(document.getElementById('calWidget'), 'https://s3.tradingview.com/external-embedding/embed-widget-events.js',
+      { width:'100%', height:440, colorTheme:'dark', isTransparent:true, locale:'in',
+        importanceFilter:'-1,0,1', countryFilter:'us,eu,gb,jp,au,ca,ch,cn,id' }, '440px');
+  }
+
+  /* ===================== INDIKATOR MATH (dipertahankan) ===================== */
+  function calcEMA(values, period){
+    const k = 2 / (period + 1);
+    const out = [values[0]];
+    for(let i = 1; i < values.length; i++) out.push(values[i] * k + out[i-1] * (1 - k));
+    return out;
+  }
+
+  function calcSMA(values, period){
+    const out = [];
+    let sum = 0;
+    for(let i = 0; i < values.length; i++){
+      sum += values[i];
+      if(i >= period) sum -= values[i - period];
+      out.push(i >= period - 1 ? sum / period : null);
+    }
+    return out;
+  }
+
+  function calcRSI(values, period){
+    let gains = 0, losses = 0;
+    for(let i = 1; i <= period; i++){
+      const diff = values[i] - values[i-1];
+      if(diff >= 0) gains += diff; else losses -= diff;
+    }
+    let avgGain = gains / period, avgLoss = losses / period;
+    const out = new Array(period).fill(null);
+    out.push(avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain/avgLoss)));
+    for(let i = period + 1; i < values.length; i++){
+      const diff = values[i] - values[i-1];
+      avgGain = (avgGain * (period-1) + (diff > 0 ? diff : 0)) / period;
+      avgLoss = (avgLoss * (period-1) + (diff < 0 ? -diff : 0)) / period;
+      out.push(avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain/avgLoss)));
+    }
+    return out;
+  }
+
+  function calcMACD(values){
+    const e12 = calcEMA(values, 12);
+    const e26 = calcEMA(values, 26);
+    const macd = values.map((_, i) => e12[i] - e26[i]);
+    const signal = calcEMA(macd, 9);
+    const hist = macd.map((v, i) => v - signal[i]);
+    return { macd, signal, hist };
+  }
+
+  function calcStoch(highs, lows, closes, period, smooth){
+    const kRaw = [];
+    for(let i = 0; i < closes.length; i++){
+      if(i < period - 1){ kRaw.push(null); continue; }
+      let hh = -Infinity, ll = Infinity;
+      for(let j = i - period + 1; j <= i; j++){
+        if(highs[j] > hh) hh = highs[j];
+        if(lows[j] < ll) ll = lows[j];
+      }
+      kRaw.push(hh === ll ? 50 : ((closes[i] - ll) / (hh - ll)) * 100);
+    }
+    const valid = kRaw.map(v => v === null ? 50 : v);
+    const k = calcSMA(valid, smooth);
+    const d = calcSMA(k.map(v => v === null ? 50 : v), 3);
+    return { k, d };
+  }
+
+  function calcBB(closes, period, mult){
+    const sma = calcSMA(closes, period);
+    const upper = [], lower = [], width = [];
+    for(let i = 0; i < closes.length; i++){
+      if(sma[i] === null){ upper.push(null); lower.push(null); width.push(null); continue; }
+      let sum = 0;
+      for(let j = i - period + 1; j <= i; j++) sum += Math.pow(closes[j] - sma[i], 2);
+      const sd = Math.sqrt(sum / period);
+      upper.push(sma[i] + mult * sd);
+      lower.push(sma[i] - mult * sd);
+      width.push(sma[i] === 0 ? 0 : (2 * mult * sd) / sma[i] * 100);
+    }
+    return { mid: sma, upper, lower, width };
+  }
+
+  function trueRanges(highs, lows, closes){
+    const tr = [highs[0] - lows[0]];
+    for(let i = 1; i < closes.length; i++){
+      tr.push(Math.max(
+        highs[i] - lows[i],
+        Math.abs(highs[i] - closes[i-1]),
+        Math.abs(lows[i] - closes[i-1])
+      ));
+    }
+    return tr;
+  }
+
+  function calcATR(highs, lows, closes, period){
+    const tr = trueRanges(highs, lows, closes);
+    const out = [tr[0]];
+    for(let i = 1; i < tr.length; i++) out.push((out[i-1] * (period - 1) + tr[i]) / period);
+    return out;
+  }
+
+  function calcADX(highs, lows, closes, period){
+    const tr = trueRanges(highs, lows, closes);
+    const plusDM = [0], minusDM = [0];
+    for(let i = 1; i < closes.length; i++){
+      const up = highs[i] - highs[i-1];
+      const dn = lows[i-1] - lows[i];
+      plusDM.push(up > dn && up > 0 ? up : 0);
+      minusDM.push(dn > up && dn > 0 ? dn : 0);
+    }
+    const smooth = (arr) => {
+      const out = [arr[0]];
+      for(let i = 1; i < arr.length; i++) out.push((out[i-1] * (period - 1) + arr[i]) / period);
+      return out;
+    };
+    const strS = smooth(tr), pS = smooth(plusDM), mS = smooth(minusDM);
+    const pDI = [], mDI = [], dx = [];
+    for(let i = 0; i < closes.length; i++){
+      const p = strS[i] === 0 ? 0 : (pS[i] / strS[i]) * 100;
+      const m = strS[i] === 0 ? 0 : (mS[i] / strS[i]) * 100;
+      pDI.push(p); mDI.push(m);
+      dx.push((p + m) === 0 ? 0 : Math.abs(p - m) / (p + m) * 100);
+    }
+    const adx = smooth(dx);
+    return { adx, pDI, mDI };
+  }
+
+  function swingLevels(highs, lows, lookback){
+    const n = highs.length;
+    const start = Math.max(0, n - lookback);
+    let hh = -Infinity, ll = Infinity;
+    for(let i = start; i < n; i++){
+      if(highs[i] > hh) hh = highs[i];
+      if(lows[i] < ll) ll = lows[i];
+    }
+    return { resistance: hh, support: ll };
+  }
+
+  // ---- ambil candle ----
+  async function fetchCandles(symbol, kind, tf){
+    if(kind === 'crypto'){
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${tf}&limit=200`);
+      if(!res.ok) throw new Error('Binance menolak permintaan (status ' + res.status + ')');
+      const k = await res.json();
+      return {
+        highs: k.map(c => parseFloat(c[2])),
+        lows: k.map(c => parseFloat(c[3])),
+        closes: k.map(c => parseFloat(c[4]))
+      };
+    }
+    // forex / komoditas — sumber gratis tanpa API key (best effort, bisa kena CORS)
+    const range = tf === '1h' ? '1mo' : '5d';
+    const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${tf === '1h' ? '60m' : '15m'}&range=${range}`;
+    const targets = [yUrl, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(yUrl)];
+    let json = null, lastErr = null;
+    for(const url of targets){
+      try{
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('status ' + res.status);
+        json = await res.json();
+        break;
+      }catch(e){ lastErr = e; }
+    }
+    if(!json) throw new Error('Data forex gratis lagi gak bisa diakses dari browser (CORS/limit). Pakai gauge TradingView di section 02 buat pair ini. Detail: ' + (lastErr && lastErr.message));
+    const q = json.chart && json.chart.result && json.chart.result[0];
+    if(!q) throw new Error('Format data forex gak dikenal');
+    const ind = q.indicators.quote[0];
+    const highs = [], lows = [], closes = [];
+    for(let i = 0; i < ind.close.length; i++){
+      if(ind.close[i] == null || ind.high[i] == null || ind.low[i] == null) continue;
+      highs.push(ind.high[i]); lows.push(ind.low[i]); closes.push(ind.close[i]);
+    }
+    if(closes.length < 60) throw new Error('Data candle forex terlalu sedikit buat dianalisis');
+    return { highs, lows, closes };
+  }
+
+  // ---- analisis satu timeframe: skor -2..+2 per indikator ----
+  function analyze(data){
+    const { highs, lows, closes } = data;
+    const i = closes.length - 1;
+    const p = i - 1;
+    const price = closes[i];
+
+    const ema9 = calcEMA(closes, 9);
+    const ema21 = calcEMA(closes, 21);
+    const ema50 = calcEMA(closes, 50);
+    const rsiArr = calcRSI(closes, 14);
+    const macdObj = calcMACD(closes);
+    const stoch = calcStoch(highs, lows, closes, 14, 3);
+    const bb = calcBB(closes, 20, 2);
+    const atrArr = calcATR(highs, lows, closes, 14);
+    const adxObj = calcADX(highs, lows, closes, 14);
+    const lv = swingLevels(highs, lows, 50);
+
+    const rsi = rsiArr[i];
+    const hist = macdObj.hist[i], histPrev = macdObj.hist[p];
+    const k = stoch.k[i] == null ? 50 : stoch.k[i];
+    const d = stoch.d[i] == null ? 50 : stoch.d[i];
+    const atr = atrArr[i];
+    const adx = adxObj.adx[i];
+    const pDI = adxObj.pDI[i], mDI = adxObj.mDI[i];
+
+    const parts = [];
+    const add = (score, text) => parts.push({ score, text });
+
+    // 1. Tren EMA
+    if(ema9[i] > ema21[i] && ema21[i] > ema50[i]) add(2, `Susunan EMA rapi naik (EMA9 > EMA21 > EMA50) — tren <b>bullish</b> dan harga ${price > ema50[i] ? 'di atas' : 'di bawah'} EMA50.`);
+    else if(ema9[i] < ema21[i] && ema21[i] < ema50[i]) add(-2, `Susunan EMA rapi turun (EMA9 &lt; EMA21 &lt; EMA50) — tren <b>bearish</b>.`);
+    else if(ema9[i] > ema21[i]) add(1, `EMA9 di atas EMA21 tapi belum searah EMA50 — bias naik jangka pendek.`);
+    else add(-1, `EMA9 di bawah EMA21 tapi belum searah EMA50 — bias turun jangka pendek.`);
+
+    // 2. Cross baru
+    if(ema9[p] <= ema21[p] && ema9[i] > ema21[i]) add(2, `<b>Golden cross baru</b>: EMA9 baru saja motong EMA21 ke atas di candle terakhir.`);
+    else if(ema9[p] >= ema21[p] && ema9[i] < ema21[i]) add(-2, `<b>Death cross baru</b>: EMA9 baru saja motong EMA21 ke bawah di candle terakhir.`);
+
+    // 3. RSI
+    if(rsi >= 70) add(-1, `RSI14 ${rsi.toFixed(1)} — <b>overbought</b>, risiko koreksi naik.`);
+    else if(rsi <= 30) add(1, `RSI14 ${rsi.toFixed(1)} — <b>oversold</b>, potensi pantulan.`);
+    else if(rsi > 55) add(1, `RSI14 ${rsi.toFixed(1)} — momentum pembeli unggul, masih ada ruang naik.`);
+    else if(rsi < 45) add(-1, `RSI14 ${rsi.toFixed(1)} — momentum penjual unggul.`);
+    else add(0, `RSI14 ${rsi.toFixed(1)} — netral, gak condong ke mana-mana.`);
+
+    // 4. MACD
+    if(hist > 0 && hist > histPrev) add(2, `MACD histogram positif dan <b>menguat</b> — dorongan naik bertambah.`);
+    else if(hist > 0) add(1, `MACD histogram positif tapi melemah — dorongan naik mulai kendor.`);
+    else if(hist < 0 && hist < histPrev) add(-2, `MACD histogram negatif dan <b>menguat ke bawah</b> — tekanan jual bertambah.`);
+    else add(-1, `MACD histogram negatif tapi mengecil — tekanan jual mulai reda.`);
+
+    // 5. Stochastic
+    if(k < 20 && k > d) add(2, `Stochastic ${k.toFixed(0)} keluar dari <b>oversold</b> dan %K motong %D ke atas — timing entry beli.`);
+    else if(k > 80 && k < d) add(-2, `Stochastic ${k.toFixed(0)} keluar dari <b>overbought</b> dan %K motong %D ke bawah — timing entry jual.`);
+    else if(k > 80) add(-1, `Stochastic ${k.toFixed(0)} di area overbought — hati-hati kejar harga.`);
+    else if(k < 20) add(1, `Stochastic ${k.toFixed(0)} di area oversold.`);
+    else add(k > d ? 1 : -1, `Stochastic ${k.toFixed(0)} di zona tengah, %K ${k > d ? 'di atas' : 'di bawah'} %D.`);
+
+    // 6. Bollinger
+    const bbU = bb.upper[i], bbL = bb.lower[i], bbM = bb.mid[i], bbW = bb.width[i];
+    const avgW = bb.width.slice(-40).filter(v => v != null).reduce((a,b)=>a+b,0) / Math.max(1, bb.width.slice(-40).filter(v => v != null).length);
+    if(price > bbU) add(-1, `Harga nembus <b>upper Bollinger</b> — sudah meregang, sering diikuti tarikan balik.`);
+    else if(price < bbL) add(1, `Harga nembus <b>lower Bollinger</b> — meregang ke bawah, potensi pantulan.`);
+    else if(bbW != null && bbW < avgW * 0.7) add(0, `Bollinger <b>menyempit (squeeze)</b> — volatilitas rendah, sering diikuti breakout besar.`);
+    else add(price > bbM ? 1 : -1, `Harga ${price > bbM ? 'di atas' : 'di bawah'} garis tengah Bollinger.`);
+
+    // 7. ADX
+    if(adx >= 25) add(pDI > mDI ? 2 : -2, `ADX ${adx.toFixed(1)} — tren <b>kuat</b>, arah dikuasai ${pDI > mDI ? '+DI (pembeli)' : '-DI (penjual)'}.`);
+    else if(adx >= 20) add(pDI > mDI ? 1 : -1, `ADX ${adx.toFixed(1)} — tren mulai terbentuk ke arah ${pDI > mDI ? 'naik' : 'turun'}.`);
+    else add(0, `ADX ${adx.toFixed(1)} — <b>sideways</b>, tren lemah. Sinyal tren gampang meleset di kondisi ini.`);
+
+    // 8. Support / Resistance
+    const spanSR = lv.resistance - lv.support;
+    const posSR = spanSR === 0 ? 0.5 : (price - lv.support) / spanSR;
+    if(posSR > 0.9) add(-1, `Harga nempel di <b>resistance</b> ${fmtPrice(lv.resistance)} (high 50 candle) — rawan ditolak.`);
+    else if(posSR < 0.1) add(1, `Harga nempel di <b>support</b> ${fmtPrice(lv.support)} (low 50 candle) — area pantulan.`);
+    else add(0, `Harga di tengah range ${fmtPrice(lv.support)} – ${fmtPrice(lv.resistance)} (${(posSR*100).toFixed(0)}% dari support).`);
+
+    const total = parts.reduce((a, b) => a + b.score, 0);
+    const maxTotal = parts.length * 2;
+    const bullCount = parts.filter(x => x.score > 0).length;
+    const bearCount = parts.filter(x => x.score < 0).length;
+
+    return {
+      price, rsi, hist, k, d, atr, adx, pDI, mDI,
+      ema9: ema9[i], ema21: ema21[i], ema50: ema50[i],
+      bbWidth: bbW, support: lv.support, resistance: lv.resistance,
+      parts, total, maxTotal, bullCount, bearCount,
+      indicatorCount: parts.length,
+      bias: total > 1 ? 'bullish' : total < -1 ? 'bearish' : 'netral'
+    };
+  }
+
+  function verdictFromScore(score, maxScore){
+    const norm = maxScore === 0 ? 0 : score / maxScore; // -1 .. 1
+    if(norm >= 0.45) return 'STRONG BUY';
+    if(norm >= 0.18) return 'BUY';
+    if(norm <= -0.45) return 'STRONG SELL';
+    if(norm <= -0.18) return 'SELL';
+    return 'NEUTRAL';
+  }
+  /* ===================== DATA CANDLE ===================== */
+  const TF_BINANCE = { '15m':'15m', '1h':'1h', '4h':'4h', '1d':'1d' };
+  const TF_YAHOO   = { '15m':{i:'15m', r:'5d'}, '1h':{i:'60m', r:'1mo'}, '4h':{i:'60m', r:'3mo'}, '1d':{i:'1d', r:'6mo'} };
+
+  async function fetchCandles(symbol, kind, tf){
+    if(kind === 'crypto'){
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${TF_BINANCE[tf]||'15m'}&limit=200`);
+      if(!res.ok) throw new Error('Binance menolak permintaan (status ' + res.status + ')');
+      const k = await res.json();
+      return { highs:k.map(c=>parseFloat(c[2])), lows:k.map(c=>parseFloat(c[3])), closes:k.map(c=>parseFloat(c[4])), opens:k.map(c=>parseFloat(c[1])) };
+    }
+    const cfg = TF_YAHOO[tf] || TF_YAHOO['15m'];
+    const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${cfg.i}&range=${cfg.r}`;
+    const targets = [yUrl, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(yUrl)];
+    let json = null, lastErr = null;
+    for(const url of targets){
+      try{ const res = await fetch(url); if(!res.ok) throw new Error('status ' + res.status); json = await res.json(); break; }
+      catch(e){ lastErr = e; }
+    }
+    if(!json) throw new Error('Data pasar gratis lagi gak bisa diakses dari browser (CORS/limit). Detail: ' + (lastErr && lastErr.message));
+    const q = json.chart && json.chart.result && json.chart.result[0];
+    if(!q) throw new Error('Format data gak dikenal');
+    const ind = q.indicators.quote[0];
+    const highs=[], lows=[], closes=[], opens=[];
+    for(let i=0;i<ind.close.length;i++){
+      if(ind.close[i]==null||ind.high[i]==null||ind.low[i]==null) continue;
+      highs.push(ind.high[i]); lows.push(ind.low[i]); closes.push(ind.close[i]); opens.push(ind.open[i]==null?ind.close[i]:ind.open[i]);
+    }
+    if(closes.length < 60) throw new Error('Data candle terlalu sedikit buat dianalisis');
+    return { highs, lows, closes, opens };
+  }
+
+  /* ===================== HERO ===================== */
+  function renderHero(data){
+    document.getElementById('heroName').textContent = activePair.name;
+    if(!data){ document.getElementById('heroPrice').textContent = '–'; document.getElementById('heroChange').textContent = 'Menunggu data harga...'; return; }
+    const c = data.closes, last = c[c.length-1];
+    const ref = c[Math.max(0, c.length - 96)];
+    const diff = last - ref, pct = ref ? (diff/ref*100) : 0;
+    document.getElementById('heroPrice').textContent = fmtNum(last);
+    const el = document.getElementById('heroChange');
+    el.className = 'hero-change' + (diff < 0 ? ' down' : '');
+    el.textContent = (diff>=0?'+':'') + fmtNum(diff) + ' (' + (diff>=0?'+':'') + pct.toFixed(2) + '%)';
+  }
+
+  function renderHomePairChips(){
+    const box = document.getElementById('homePairChips');
+    box.innerHTML = PAIRS.map(p => `<div class="chip ${p.label===activePair.label?'active':''}" data-pair="${p.label}">${p.label}</div>`).join('');
+    box.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => {
+      activePair = PAIRS.find(p => p.label === chip.dataset.pair);
+      renderHomePairChips(); renderSigPairChips(); loadHeroChart(); renderHero(null); runAnalysis();
+    }));
+  }
+  function renderSigPairChips(){
+    const box = document.getElementById('sigPairSelect');
+    box.innerHTML = PAIRS.map(p => `<div class="chip ${p.label===activePair.label?'active':''}" data-pair="${p.label}">${p.label}</div>`).join('');
+    box.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => {
+      activePair = PAIRS.find(p => p.label === chip.dataset.pair);
+      renderHomePairChips(); renderSigPairChips(); loadHeroChart(); renderHero(null); runAnalysis();
+    }));
+  }
+
+  /* ===================== RIWAYAT / SIGNAL STORE ===================== */
+  async function getHistoryList(){
+    try{
+      if(window.storage && window.storage.get){
+        const saved = await window.storage.get('signal-history', false);
+        if(saved && saved.value) return JSON.parse(saved.value);
+        return [];
+      }
+      const raw = localStorage.getItem('signal-history');
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  async function saveHistoryList(list){
+    try{
+      if(window.storage && window.storage.set) await window.storage.set('signal-history', JSON.stringify(list), false);
+      else localStorage.setItem('signal-history', JSON.stringify(list));
+    }catch(e){}
+  }
+
+  let HISTORY = [];
+
+  async function logSignal(pair, type, entry, sl, tps){
+    const list = await getHistoryList();
+    const last = list.find(x => x.pair === pair.label && x.status === 'ACTIVE');
+    if(last && Math.abs(last.entry - entry) / entry < 0.0005 && last.type === type) return;
+    list.unshift({
+      id: Date.now() + '-' + pair.label,
+      pair: pair.label, sym: pair.sym, kind: pair.kind, pip: pair.pip, tv: pair.tv,
+      type, entry, sl, tp: tps, tpHit: 0,
+      session: sessionNow(),
+      time: new Date().toISOString(),
+      status: 'ACTIVE'
+    });
+    await saveHistoryList(list.slice(0, 60));
+  }
+
+  function normalize(item){
+    if(!Array.isArray(item.tp)){
+      const risk = Math.abs(item.entry - item.sl) || item.entry * 0.002;
+      const dir = item.type === 'BUY' ? 1 : -1;
+      item.tp = [0.5,1,1.5,2].map(m => item.entry + dir * risk * m);
+    }
+    if(item.tpHit == null) item.tpHit = item.status === 'TP_HIT' ? 1 : 0;
+    if(!item.pip) item.pip = (PAIRS.find(p=>p.label===item.pair)||{pip:0.0001}).pip;
+    return item;
+  }
+
+  async function updateStatuses(priceMap){
+    const list = (await getHistoryList()).map(normalize);
+    let changed = false;
+    for(const it of list){
+      if(it.status !== 'ACTIVE') continue;
+      const price = priceMap[it.pair];
+      if(price == null) continue;
+      const dir = it.type === 'BUY' ? 1 : -1;
+      if((price - it.sl) * dir <= 0){
+        it.status = it.tpHit >= 1 ? 'BE' : 'SL_HIT'; changed = true; continue;
+      }
+      for(let i = it.tp.length - 1; i >= 0; i--){
+        if((price - it.tp[i]) * dir >= 0){
+          if(it.tpHit < i + 1){ it.tpHit = i + 1; changed = true; }
+          break;
+        }
+      }
+      if(it.tpHit >= 4){ it.status = 'TP_HIT'; changed = true; }
+    }
+    if(changed) await saveHistoryList(list);
+    HISTORY = list;
+    renderAllSignalViews();
+  }
+
+  function statusInfo(it){
+    if(it.status === 'ACTIVE') return it.tpHit > 0 ? { cls:'live', text:'TP' + it.tpHit + ' HIT' } : { cls:'live', text:'LIVE' };
+    if(it.status === 'SL_HIT') return { cls:'loss', text:'SL HIT' };
+    if(it.status === 'BE') return { cls:'be', text:'BREAK EVEN' };
+    return { cls:'win', text:'TP' + Math.max(1, it.tpHit) + ' HIT' };
+  }
+
+  function runningText(iso){
+    const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime())/1000));
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    return (h>0 ? h+'j ' : '') + m + 'm ' + sec + 's berjalan';
+  }
+
+  function signalCard(it){
+    const st = statusInfo(it);
+    const sub = it.status === 'ACTIVE'
+      ? `<span class="run" data-time="${it.time}">${runningText(it.time)}</span>`
+      : new Date(it.time).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:false});
+    return `
+      <div class="sig-card ${it.type === 'SELL' ? 'sell' : ''} ${it.status==='ACTIVE'?'live':''}" data-id="${it.id}">
+        <div class="sig-left">
+          <div class="tag ${it.type === 'SELL' ? 'sell' : ''}">${it.type}</div>
+          <div>
+            <div class="sig-pair">${it.pair}</div>
+            <div class="sig-sub">${sub}</div>
+          </div>
+        </div>
+        <div class="sig-right">
+          <div class="sig-price">${fmtNum(it.entry)}</div>
+          <div class="pill ${st.cls}">${st.text}</div>
+        </div>
+      </div>`;
+  }
+
+  function bindCards(root){
+    root.querySelectorAll('.sig-card').forEach(c => c.addEventListener('click', () => openDetail(c.dataset.id)));
+  }
+
+  function renderAllSignalViews(){
+    const home = document.getElementById('homeSignals');
+    const recent = HISTORY.slice(0, 4);
+    home.innerHTML = recent.length ? recent.map(signalCard).join('')
+      : '<div class="empty">Menganalisis pasar — sinyal pertama lagi disiapin.</div>';
+    bindCards(home);
+
+    const start = new Date(); start.setHours(0,0,0,0);
+    const today = HISTORY.filter(x => new Date(x.time) >= start);
+    const listEl = document.getElementById('signalList');
+    document.getElementById('sigCount').textContent = today.length + ' sinyal';
+    listEl.innerHTML = today.length ? today.map(signalCard).join('') : '<div class="empty">Belum ada sinyal hari ini.</div>';
+    bindCards(listEl);
+  }
+
+  setInterval(() => {
+    document.querySelectorAll('.run').forEach(el => el.textContent = runningText(el.dataset.time));
+  }, 1000);
+
+  /* ===================== DETAIL SIGNAL ===================== */
+  let detailItem = null, detailTf = '1h';
+  let fellBack = false;
+
+  function closeDetail(){
+    detailItem = null;
+    document.getElementById('signalDetailView').style.display = 'none';
+    document.getElementById('signalListView').style.display = 'block';
+  }
+  document.getElementById('detailBack').addEventListener('click', closeDetail);
+
+  function openDetail(id){
+    const it = HISTORY.find(x => x.id === id);
+    if(!it) return;
+    detailItem = normalize(it); detailTf = '1h';
+    switchViewToSignalDetail();
+  }
+  function switchViewToSignalDetail(){
+    document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active-view', p.dataset.view === 'signal'));
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.view === 'signal'));
+    document.getElementById('signalListView').style.display = 'none';
+    document.getElementById('signalDetailView').style.display = 'block';
+    window.scrollTo({ top:0, behavior:'instant' });
+    renderDetail();
+  }
+
+  function renderDetail(){
+    const it = detailItem; if(!it) return;
+    const st = statusInfo(it);
+    const risk = Math.abs(it.entry - it.sl);
+    const rr = (Math.abs(it.tp[0] - it.entry) / (risk || 1)).toFixed(1);
+    const zoneHi = it.type === 'BUY' ? it.entry + risk*0.25 : it.entry;
+    const zoneLo = it.type === 'BUY' ? it.entry : it.entry - risk*0.25;
+    const pair = PAIRS.find(p => p.label === it.pair) || { pip: it.pip || 0.0001 };
+
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-id-row">
+        <div class="detail-id">
+          <div class="tag ${it.type==='SELL'?'sell':''}">${it.type}</div>
+          <div class="detail-pair">${it.pair}</div>
+        </div>
+        <div class="status-chip ${it.status==='ACTIVE'?'on':''}">${it.status==='ACTIVE'?'ACTIVE':st.text}</div>
+      </div>
+
+      <div class="kv-grid">
+        <div class="kv"><label>Entry</label><b>${fmtNum(it.entry)}</b></div>
+        <div class="kv"><label>Stop Loss</label><b class="red">${fmtNum(it.sl)}</b></div>
+        <div class="kv"><label>Risk / Reward</label><b>1 : ${rr}</b></div>
+        <div class="kv"><label>Sesi</label><b class="blue">${it.session || sessionNow()}</b></div>
+      </div>
+
+      <div class="card tp-card" style="margin-bottom:16px;">
+        ${it.tp.map((v,i) => `
+          <div class="tp-row ${it.tpHit > i ? 'hit' : ''}">
+            <span>TP${i+1} · ${fmtNum(v)}</span>
+            <b>+${pipsBetween(v, it.entry, pair)} pips${it.tpHit > i ? ' ✓' : ''}</b>
+          </div>`).join('')}
+      </div>
+
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <div class="chart-card-head">
+          <b>${it.pair} · ${detailTf.toUpperCase()}</b>
+          <span>${fmtNum(it.entry)}</span>
+        </div>
+        <div id="detailChart"><div class="empty" style="padding:60px 0;">Memuat chart...</div></div>
+        <div class="tf-row">
+          ${['15m','1h','4h','1d'].map(t => `<div class="tf-btn ${t===detailTf?'active':''}" data-tf="${t}">${t==='15m'?'M15':t==='1h'?'H1':t==='4h'?'H4':'D1'}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="detail-foot">
+        Zona entry <b>${fmtNum(zoneLo)} – ${fmtNum(zoneHi)}</b><br>
+        ${new Date(it.time).toLocaleString('id-ID', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).replace(/\./g,':')} WIB
+      </div>`;
+
+    document.querySelectorAll('#detailBody .tf-btn').forEach(b => b.addEventListener('click', () => {
+      detailTf = b.dataset.tf; renderDetail();
+    }));
+    drawDetailChart();
+  }
+
+  async function drawDetailChart(){
+    const it = detailItem; if(!it) return;
+    const host = document.getElementById('detailChart'); if(!host) return;
+    try{
+      const d = await fetchCandles(it.sym || (PAIRS.find(p=>p.label===it.pair)||{}).sym, it.kind || 'crypto', detailTf);
+      if(!detailItem || detailItem.id !== it.id) return;
+      host.innerHTML = miniChartSVG(d, it);
+    }catch(e){
+      host.innerHTML = '<div class="empty" style="padding:50px 0;">Chart gak bisa dimuat: ' + e.message + '</div>';
+    }
+  }
+
+  function miniChartSVG(d, it){
+    const W = 320, H = 190, padR = 8, padL = 4, padT = 10, padB = 8;
+    const n = Math.min(60, d.closes.length);
+    const hi = d.highs.slice(-n), lo = d.lows.slice(-n), cl = d.closes.slice(-n), op = (d.opens||cl).slice(-n);
+    const levels = [it.sl, it.entry].concat(it.tp);
+    let max = Math.max(...hi, ...levels), min = Math.min(...lo, ...levels);
+    const span = (max - min) || 1; max += span*0.06; min -= span*0.06;
+    const y = v => padT + (max - v) / (max - min) * (H - padT - padB);
+    const cw = (W - padL - padR) / n;
+    let body = '';
+    for(let i=0;i<n;i++){
+      const x = padL + i*cw + cw/2;
+      const up = cl[i] >= op[i];
+      const col = up ? '#22c58b' : '#f2555a';
+      const yo = y(op[i]), yc = y(cl[i]);
+      body += `<line x1="${x.toFixed(1)}" y1="${y(hi[i]).toFixed(1)}" x2="${x.toFixed(1)}" y2="${y(lo[i]).toFixed(1)}" stroke="${col}" stroke-width="0.8"/>`;
+      body += `<rect x="${(x - Math.max(1.1, cw*0.3)).toFixed(1)}" y="${Math.min(yo,yc).toFixed(1)}" width="${(Math.max(2.2, cw*0.6)).toFixed(1)}" height="${Math.max(1, Math.abs(yc-yo)).toFixed(1)}" fill="${col}"/>`;
+    }
+    const line = (v, col, label) => `
+      <line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W-padR}" y2="${y(v).toFixed(1)}" stroke="${col}" stroke-width="0.7" stroke-dasharray="3 3" opacity="0.85"/>
+      <text x="${padL+2}" y="${(y(v)-3).toFixed(1)}" fill="${col}" font-size="6.5" font-family="IBM Plex Mono, monospace">${label} ${fmtNum(v)}</text>`;
+    let lines = line(it.sl, '#f2555a', 'SL');
+    lines += line(it.entry, '#8b93ad', 'ENTRY');
+    it.tp.forEach((v,i) => { lines += line(v, '#22c58b', 'TP'+(i+1)); });
+    return `<svg class="mini-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${body}${lines}</svg>`;
+  }
+
+  /* ===================== MESIN ANALISA ===================== */
+  async function runAnalysis(){
+    const loadingEl = document.getElementById('sigLoading');
+    const bodyEl = document.getElementById('sigBody');
+    loadingEl.style.display = 'block';
+    loadingEl.textContent = 'Menganalisis chart ' + activePair.label + ' (8 indikator, 2 timeframe)...';
+    bodyEl.style.display = 'none';
+    const pair = activePair;
+
+    try{
+      const [d15, d1h] = await Promise.all([
+        fetchCandles(pair.sym, pair.kind, '15m'),
+        fetchCandles(pair.sym, pair.kind, '1h').catch(() => null)
+      ]);
+      if(activePair.label !== pair.label) return;
+
+      renderHero(d15);
+
+      const a15 = analyze(d15);
+      const a1h = d1h ? analyze(d1h) : null;
+
+      let score = a15.total, maxScore = a15.maxTotal, mtf = 'none';
+      if(a1h){
+        const s15 = Math.sign(a15.total), s1h = Math.sign(a1h.total);
+        if(s15 !== 0 && s15 === s1h) mtf = 'aligned';
+        else if(s15 !== 0 && s1h !== 0) mtf = 'conflict';
+        score = a15.total + a1h.total * 0.6;
+        maxScore = a15.maxTotal + a1h.maxTotal * 0.6;
+      }
+
+      let verdict = verdictFromScore(score, maxScore);
+      if(mtf === 'conflict' && (verdict === 'BUY' || verdict === 'SELL')) verdict = 'NEUTRAL';
+      if(mtf === 'conflict' && verdict === 'STRONG BUY') verdict = 'BUY';
+      if(mtf === 'conflict' && verdict === 'STRONG SELL') verdict = 'SELL';
+      if(a15.adx < 18 && (verdict === 'STRONG BUY' || verdict === 'STRONG SELL')) verdict = verdict === 'STRONG BUY' ? 'BUY' : 'SELL';
+
+      const isBuy = verdict.indexOf('BUY') !== -1;
+      const isSell = verdict.indexOf('SELL') !== -1;
+
+      let confidence = Math.round(Math.abs(score / maxScore) * 100);
+      if(mtf === 'aligned') confidence = Math.min(97, confidence + 10);
+      if(mtf === 'conflict') confidence = Math.max(5, confidence - 15);
+      if(a15.adx < 18) confidence = Math.max(5, confidence - 8);
+
+      const badge = document.getElementById('sigBadge');
+      badge.textContent = verdict;
+      badge.className = 'verdict' + (isBuy ? ' buy' : isSell ? ' sell' : '');
+
+      const fill = document.getElementById('sigConfFill');
+      fill.style.width = confidence + '%';
+      fill.className = 'conf-fill' + (isBuy ? ' buy' : isSell ? ' sell' : '');
+      document.getElementById('sigConfNum').textContent = 'Confidence ' + confidence + '%';
+      document.getElementById('sigUpdated').textContent =
+        'Update ' + new Date().toLocaleTimeString('id-ID', {hour12:false}) + ' WIB · TF 15m';
+
+      const agree = isBuy ? a15.bullCount : isSell ? a15.bearCount : Math.max(a15.bullCount, a15.bearCount);
+      const flags = [
+        { cls: isBuy ? 'up' : isSell ? 'down' : '', text: `${agree}/${a15.indicatorCount} INDIKATOR SETUJU` },
+        { cls: mtf === 'aligned' ? 'up' : mtf === 'conflict' ? 'down' : '', text: a1h ? (mtf === 'aligned' ? 'MTF ALIGNED · 15m = 1H' : mtf === 'conflict' ? 'MTF CONFLICT · 15m ≠ 1H' : 'MTF NETRAL') : 'MTF: 1H TIDAK TERSEDIA' },
+        { cls: a15.adx >= 25 ? 'on' : '', text: (a15.adx >= 25 ? 'TREN KUAT (ADX ' : 'TREN LEMAH (ADX ') + a15.adx.toFixed(0) + ')' },
+        { cls: '', text: 'ATR ' + fmtPrice(a15.atr) },
+        { cls: '', text: 'SESI ' + sessionNow().toUpperCase() }
+      ];
+      document.getElementById('sigFlags').innerHTML = flags.map(f => `<div class="flag ${f.cls}">${f.text}</div>`).join('');
+
+      const sorted = a15.parts.slice().sort((x, y) => Math.abs(y.score) - Math.abs(x.score));
+      document.getElementById('sigReasons').innerHTML = sorted.map(r =>
+        `<li class="${r.score > 0 ? 'up' : r.score < 0 ? 'down' : ''}"><span class="rdot"></span><span>${r.text}</span></li>`
+      ).join('') + (a1h ? `<li class="${a1h.total > 0 ? 'up' : a1h.total < 0 ? 'down' : ''}"><span class="rdot"></span><span>Timeframe <b>1 jam</b> lagi ${a1h.bias} (skor ${a1h.total > 0 ? '+' : ''}${a1h.total}) — ${mtf === 'aligned' ? 'searah sama 15m, sinyal lebih dipercaya.' : mtf === 'conflict' ? 'berlawanan sama 15m, sinyal diturunkan.' : 'belum kasih arah jelas.'}</span></li>` : '');
+
+      const cell = (label, val, dir) => `<div class="ind-cell"><span>${label}</span><b class="${dir > 0 ? 'up' : dir < 0 ? 'down' : ''}">${val}</b></div>`;
+      document.getElementById('sigIndTable').innerHTML = [
+        cell('HARGA', fmtPrice(a15.price), 0),
+        cell('RSI 14', a15.rsi.toFixed(1), a15.rsi > 55 ? 1 : a15.rsi < 45 ? -1 : 0),
+        cell('EMA 9', fmtPrice(a15.ema9), a15.ema9 > a15.ema21 ? 1 : -1),
+        cell('EMA 21', fmtPrice(a15.ema21), a15.ema21 > a15.ema50 ? 1 : -1),
+        cell('EMA 50', fmtPrice(a15.ema50), a15.price > a15.ema50 ? 1 : -1),
+        cell('MACD HIST', a15.hist.toFixed(Math.abs(a15.hist) < 1 ? 5 : 2), a15.hist > 0 ? 1 : -1),
+        cell('STOCH %K', a15.k.toFixed(1), a15.k > a15.d ? 1 : -1),
+        cell('ADX 14', a15.adx.toFixed(1), a15.adx >= 25 ? 1 : 0),
+        cell('SUPPORT', fmtPrice(a15.support), 1),
+        cell('RESISTANCE', fmtPrice(a15.resistance), -1)
+      ].join('');
+
+      const price = a15.price;
+      const detailEl = document.getElementById('sigDetail');
+
+      if(isBuy || isSell){
+        const risk = a15.atr * 1.5;
+        const dir = isBuy ? 1 : -1;
+        const sl = price - dir * risk;
+        const tps = [0.5, 1, 1.5, 2].map(m => price + dir * risk * m);
+        const riskPct = (risk / price * 100).toFixed(2);
+        detailEl.innerHTML = `<b>Kesimpulan:</b> ${agree} dari ${a15.indicatorCount} indikator ${isBuy ? 'bullish' : 'bearish'} di TF 15m${a1h ? (mtf === 'aligned' ? ', dan TF 1H searah' : mtf === 'conflict' ? ', tapi TF 1H berlawanan (hati-hati)' : '') : ''}. SL dipasang 1.5×ATR (${riskPct}% dari harga), TP1–TP4 ditarik di 0.5R, 1R, 1.5R, dan 2R.<br><br><b>Sinyal batal kalau:</b> harga ${isBuy ? 'tutup di bawah ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik negatif' : 'tutup di atas ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik positif'}.`;
+        await logSignal(pair, isBuy ? 'BUY' : 'SELL', price, sl, tps);
+      } else {
+        detailEl.innerHTML = `<b>Kesimpulan:</b> indikator lagi kebelah (${a15.bullCount} bullish vs ${a15.bearCount} bearish). Belum ada setup dengan rasio risiko yang layak — <b>lebih aman nunggu</b>. Pantau breakout dari ${fmtPrice(a15.support)} – ${fmtPrice(a15.resistance)}.`;
+      }
+
+      await updateStatuses({ [pair.label]: price });
+      loadingEl.style.display = 'none';
+      bodyEl.style.display = 'block';
+    }catch(err){
+      loadingEl.style.display = 'block';
+      loadingEl.textContent = 'Gagal analisis: ' + err.message;
+      bodyEl.style.display = 'none';
+      HISTORY = (await getHistoryList()).map(normalize);
+      renderAllSignalViews();
+      // sumber data gratis buat XAU/forex kadang diblokir browser (CORS) — pindah otomatis sekali ke pair yang pasti jalan
+      if(!fellBack && pair.kind === 'fx'){
+        fellBack = true;
+        activePair = PAIRS[1];
+        renderHomePairChips(); renderSigPairChips(); loadHeroChart(); renderHero(null);
+        runAnalysis();
+      }
+    }
+  }
+
+  /* ===================== KALKULATOR ===================== */
+  document.querySelectorAll('.lot-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lot-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('calcLot').value = btn.dataset.lot;
+    });
+  });
+  document.getElementById('lotMinus').addEventListener('click', () => {
+    const el = document.getElementById('calcLot');
+    el.value = Math.max(0.01, (parseFloat(el.value) - 0.01)).toFixed(2);
+  });
+  document.getElementById('lotPlus').addEventListener('click', () => {
+    const el = document.getElementById('calcLot');
+    el.value = (parseFloat(el.value) + 0.01).toFixed(2);
+  });
+  document.getElementById('calcRun').addEventListener('click', () => {
+    const equityRaw = parseFloat(document.getElementById('calcEquity').value) || 0;
+    const isCent = document.getElementById('calcCent').checked;
+    const equity = isCent ? equityRaw / 100 : equityRaw;
+    const entry = parseFloat(document.getElementById('calcEntry').value);
+    const sl = parseFloat(document.getElementById('calcSL').value);
+    const lot = parseFloat(document.getElementById('calcLot').value) || 0.01;
+    const resultEl = document.getElementById('calcResult');
+    if(!entry || !sl || equity <= 0){
+      resultEl.style.display = 'block';
+      document.getElementById('calcLossValue').textContent = 'Lengkapi dulu semua kolom';
+      document.getElementById('calcLossPct').textContent = '';
+      document.getElementById('calcWarning').textContent = '';
+      return;
+    }
+    const lossUSD = Math.abs(entry - sl) * 100000 * lot;
+    const lossPct = (lossUSD / equity) * 100;
+    document.getElementById('calcLossValue').textContent = '-$' + lossUSD.toFixed(2);
+    document.getElementById('calcLossPct').textContent = lossPct.toFixed(1) + '% dari equity ($' + equity.toFixed(2) + ')';
+    const warnEl = document.getElementById('calcWarning');
+    if(lossPct >= 100) warnEl.textContent = '⚠️ BAHAYA — kerugian melebihi equity, lot ini kegedean buat modal segini.';
+    else if(lossPct >= 20) warnEl.textContent = '⚠️ Resiko tinggi — lebih dari 20% modal dalam satu trade.';
+    else if(lossPct >= 5) warnEl.textContent = 'Resiko sedang. Masih di atas rule umum 1-2%, pertimbangkan kecilin lot.';
+    else warnEl.textContent = '✓ Resiko relatif terkendali (di bawah 5% modal per trade).';
+    resultEl.style.display = 'block';
+  });
+
+  /* ===================== AKUN ===================== */
+  let accPeriod = 'all';
+  function filterHistoryByPeriod(list, period){
+    if(period === 'all') return list;
+    const now = new Date();
+    let cutoff;
+    if(period === 'today') cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    else if(period === 'week') cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    else cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    return list.filter(x => new Date(x.time) >= cutoff);
+  }
+  async function renderAccountPage(){
+    HISTORY = (await getHistoryList()).map(normalize);
+    const list = filterHistoryByPeriod(HISTORY, accPeriod);
+    const win = list.filter(x => x.status === 'TP_HIT' || (x.status === 'BE' && x.tpHit > 0)).length;
+    const loss = list.filter(x => x.status === 'SL_HIT').length;
+    const active = list.filter(x => x.status === 'ACTIVE').length;
+    const closed = win + loss;
+    document.getElementById('accWinrate').textContent = closed > 0 ? Math.round(win / closed * 100) + '%' : '–';
+    document.getElementById('accSub').textContent = list.length + ' sinyal · ' + closed + ' selesai';
+    document.getElementById('accWin').textContent = win;
+    document.getElementById('accLoss').textContent = loss;
+    document.getElementById('accActive').textContent = active;
+    const el = document.getElementById('accHistList');
+    el.innerHTML = list.length ? list.slice(0, 50).map(signalCard).join('') : '<div class="empty">Belum ada riwayat di periode ini.</div>';
+    bindCards(el);
+  }
+  document.querySelectorAll('#accPeriodSelect .chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#accPeriodSelect .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      accPeriod = btn.dataset.period;
+      renderAccountPage();
+    });
+  });
+
+  /* ===================== SCANNER SEMUA PAIR ===================== */
+  function decide(a15, a1h){
+    let score = a15.total, maxScore = a15.maxTotal, mtf = 'none';
+    if(a1h){
+      const s15 = Math.sign(a15.total), s1h = Math.sign(a1h.total);
+      if(s15 !== 0 && s15 === s1h) mtf = 'aligned';
+      else if(s15 !== 0 && s1h !== 0) mtf = 'conflict';
+      score = a15.total + a1h.total * 0.6;
+      maxScore = a15.maxTotal + a1h.maxTotal * 0.6;
+    }
+    let verdict = verdictFromScore(score, maxScore);
+    if(mtf === 'conflict' && (verdict === 'BUY' || verdict === 'SELL')) verdict = 'NEUTRAL';
+    if(mtf === 'conflict' && verdict === 'STRONG BUY') verdict = 'BUY';
+    if(mtf === 'conflict' && verdict === 'STRONG SELL') verdict = 'SELL';
+    if(a15.adx < 18 && (verdict === 'STRONG BUY' || verdict === 'STRONG SELL')) verdict = verdict === 'STRONG BUY' ? 'BUY' : 'SELL';
+    return verdict;
+  }
+
+  async function scanAllPairs(){
+    const priceMap = {};
+    await Promise.all(PAIRS.map(async (pair) => {
+      try{
+        const [d15, d1h] = await Promise.all([
+          fetchCandles(pair.sym, pair.kind, '15m'),
+          fetchCandles(pair.sym, pair.kind, '1h').catch(() => null)
+        ]);
+        const a15 = analyze(d15);
+        const a1h = d1h ? analyze(d1h) : null;
+        // trigger feed pakai verdict TF 15m; MTF cuma dipakai buat naik/turunin kualitas di tab Indikator
+        let verdict = verdictFromScore(a15.total, a15.maxTotal);
+        const mtfVerdict = decide(a15, a1h);
+        if(mtfVerdict === 'NEUTRAL' && verdict !== 'NEUTRAL' && Math.abs(a15.total) < 3) verdict = 'NEUTRAL';
+        priceMap[pair.label] = a15.price;
+        if(verdict !== 'NEUTRAL'){
+          const isBuy = verdict.indexOf('BUY') !== -1;
+          const risk = a15.atr * 1.5, dir = isBuy ? 1 : -1;
+          const sl = a15.price - dir * risk;
+          const tps = [0.5, 1, 1.5, 2].map(m => a15.price + dir * risk * m);
+          await logSignal(pair, isBuy ? 'BUY' : 'SELL', a15.price, sl, tps);
+        }
+      }catch(e){ /* pair ini gak bisa diakses dari browser, lewat */ }
+    }));
+    await updateStatuses(priceMap);
+  }
+
+  /* ===================== BOOT ===================== */
+  (async function boot(){
+    HISTORY = (await getHistoryList()).map(normalize);
+    renderAllSignalViews();
+    renderHomePairChips();
+    renderSigPairChips();
+    renderHero(null);
+    loadHeroChart();
+    runAnalysis();
+    scanAllPairs();
+    setInterval(runAnalysis, 60000);
+    setInterval(scanAllPairs, 180000);
+  })();
+</script>
+</body>
+</html>
