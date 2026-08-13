@@ -122,6 +122,56 @@
   .stats-spark{ height:70px; margin-top:14px; display:block; }
 
   /* ==== pintasan ==== */
+  /* ==== SINYAL LIVE hero (muncul di Beranda kalau ada sinyal yang lagi aktif) ==== */
+  @keyframes liveBorderPulse{
+    0%,100%{ box-shadow: 0 0 0 1px rgba(34,197,139,0.35), 0 0 22px -4px rgba(34,197,139,0.55); }
+    50%{ box-shadow: 0 0 0 1.5px rgba(34,197,139,0.7), 0 0 34px 2px rgba(34,197,139,0.85); }
+  }
+  @keyframes liveBorderPulseSell{
+    0%,100%{ box-shadow: 0 0 0 1px rgba(242,85,90,0.35), 0 0 22px -4px rgba(242,85,90,0.55); }
+    50%{ box-shadow: 0 0 0 1.5px rgba(242,85,90,0.7), 0 0 34px 2px rgba(242,85,90,0.85); }
+  }
+  @keyframes liveDotPulse{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.4; transform:scale(0.7); } }
+  @keyframes liveArrowFloat{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-5px); } }
+  @keyframes liveArrowFloatSell{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(5px); } }
+  @keyframes liveTickPulse{ 0%,100%{ opacity:.25; transform: scaleY(0.7); } 50%{ opacity:1; transform: scaleY(1); } }
+
+  .live-hero{
+    position: relative; padding: 16px 18px 18px; border-radius: var(--radius);
+    background: linear-gradient(155deg, rgba(34,197,139,0.14), rgba(12,17,32,0.6) 60%, var(--bg-2));
+    border: 1px solid rgba(34,197,139,0.4);
+    animation: liveBorderPulse 2.2s ease-in-out infinite;
+    cursor: pointer;
+  }
+  .live-hero.sell{
+    background: linear-gradient(155deg, rgba(242,85,90,0.14), rgba(12,17,32,0.6) 60%, var(--bg-2));
+    border-color: rgba(242,85,90,0.4);
+    animation-name: liveBorderPulseSell;
+  }
+  .live-hero-top{ display:flex; align-items:center; justify-content:space-between; }
+  .live-badge-dot{ display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800; letter-spacing:.4px; color: var(--up); }
+  .live-hero.sell .live-badge-dot{ color: var(--down); }
+  .live-badge-dot .dot{ width:8px; height:8px; border-radius:50%; background: currentColor; animation: liveDotPulse 1.3s ease-in-out infinite; }
+  .live-hero .dir-badge{
+    font-size:11.5px; font-weight:800; padding:4px 12px; border-radius:99px;
+    background: var(--up-soft); color: var(--up); border:1px solid rgba(34,197,139,0.4);
+  }
+  .live-hero .dir-badge.sell{ background: var(--down-soft); color: var(--down); border-color: rgba(242,85,90,0.4); }
+  .live-hero-pair{ font-size:22px; font-weight:800; letter-spacing:-0.3px; margin-top:10px; }
+  .live-hero-body{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-top:12px; }
+  .live-hero-grid{ display:flex; gap:22px; }
+  .live-hero-grid label{ display:block; font-size:9.5px; letter-spacing:.6px; color: var(--text-dim); font-weight:700; }
+  .live-hero-grid b{ display:block; font-size:16px; font-weight:800; margin-top:4px; }
+  .live-arrow-wrap{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .live-tick{ width:3px; height:12px; border-radius:2px; background: var(--up); animation: liveTickPulse 1.3s ease-in-out infinite; }
+  .live-hero.sell .live-tick{ background: var(--down); }
+  .live-tick.t2{ animation-delay: .3s; }
+  .live-arrow{
+    width:34px; height:44px; fill: var(--up); filter: drop-shadow(0 0 10px rgba(34,197,139,0.7));
+    animation: liveArrowFloat 1.6s ease-in-out infinite;
+  }
+  .live-arrow.sell{ fill: var(--down); filter: drop-shadow(0 0 10px rgba(242,85,90,0.7)); animation-name: liveArrowFloatSell; }
+
   .pintasan-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
   .pintasan-item{
     position:relative; display:flex; flex-direction:column; align-items:center; gap:8px;
@@ -275,7 +325,7 @@
   .chart-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
   .chart-card-head b{ font-size: 13px; }
   .chart-card-head span{ font-family:'IBM Plex Mono', monospace; font-size: 13px; }
-  .mini-chart{ width:100%; height: 190px; display:block; }
+  .mini-chart{ width:100%; height: 220px; display:block; }
   .tf-row{ display:flex; gap:7px; margin-top: 12px; }
   .tf-btn{ font-size: 11px; font-weight:600; padding: 6px 13px; border-radius:99px; background: rgba(255,255,255,0.05); color: var(--text-dim); cursor:pointer; }
   .tf-btn.active{ background: var(--blue); color:#fff; }
@@ -494,6 +544,8 @@
       </div>
     </div>
   </div>
+
+  <div id="liveSignalHero"></div>
 
   <div class="card">
     <div class="chart-head">
@@ -1455,8 +1507,41 @@
     root.querySelectorAll('.sig-card').forEach(c => c.addEventListener('click', () => openDetail(c.dataset.id)));
   }
 
+  function renderLiveSignalHero(){
+    const host = document.getElementById('liveSignalHero');
+    const it = HISTORY.find(x => x.status === 'ACTIVE');
+    if(!it){ host.innerHTML = ''; return; }
+    const isBuy = it.type === 'BUY';
+    const nextTp = it.tp[Math.min(it.tpHit, it.tp.length - 1)];
+    const arrowPath = isBuy
+      ? 'M20 2 L38 26 L27 26 L27 58 L13 58 L13 26 L2 26 Z'
+      : 'M20 58 L2 34 L13 34 L13 2 L27 2 L27 34 L38 34 Z';
+    host.innerHTML = `
+      <div class="live-hero ${isBuy ? '' : 'sell'}" data-id="${it.id}">
+        <div class="live-hero-top">
+          <div class="live-badge-dot"><span class="dot"></span>SINYAL LIVE</div>
+          <div class="dir-badge ${isBuy ? '' : 'sell'}">${isBuy ? '↗ BUY' : '↘ SELL'}</div>
+        </div>
+        <div class="live-hero-pair">${it.pair.replace('/', '')}</div>
+        <div class="live-hero-body">
+          <div class="live-hero-grid">
+            <div><label>ENTRY</label><b>${fmtNum(it.entry)}</b></div>
+            <div><label>TP</label><b style="color:var(--up)">${fmtNum(nextTp)}</b></div>
+            <div><label>SL</label><b style="color:var(--down)">${fmtNum(it.sl)}</b></div>
+          </div>
+          <div class="live-arrow-wrap">
+            <span class="live-tick t1"></span>
+            <svg class="live-arrow ${isBuy ? '' : 'sell'}" viewBox="0 0 40 60"><path d="${arrowPath}"/></svg>
+            <span class="live-tick t2"></span>
+          </div>
+        </div>
+      </div>`;
+    host.querySelector('.live-hero').addEventListener('click', () => openDetail(it.id));
+  }
+
   function renderAllSignalViews(){
     renderHomeStats();
+    renderLiveSignalHero();
     const home = document.getElementById('homeSignals');
     const recent = HISTORY.slice(0, 4);
     home.innerHTML = recent.length ? recent.map(signalCard).join('')
@@ -1571,12 +1656,12 @@
   }
 
   function miniChartSVG(d, it){
-    const W = 320, H = 190, padR = 8, padL = 4, padT = 10, padB = 8;
+    const W = 320, H = 220, padR = 8, padL = 4, padT = 10, padB = 8;
     const n = Math.min(60, d.closes.length);
     const hi = d.highs.slice(-n), lo = d.lows.slice(-n), cl = d.closes.slice(-n), op = (d.opens||cl).slice(-n);
     const levels = [it.sl, it.entry].concat(it.tp);
     let max = Math.max(...hi, ...levels), min = Math.min(...lo, ...levels);
-    const span = (max - min) || 1; max += span*0.06; min -= span*0.06;
+    const span = (max - min) || 1; max += span*0.08; min -= span*0.08;
     const y = v => padT + (max - v) / (max - min) * (H - padT - padB);
     const cw = (W - padL - padR) / n;
     let body = '';
@@ -1588,12 +1673,36 @@
       body += `<line x1="${x.toFixed(1)}" y1="${y(hi[i]).toFixed(1)}" x2="${x.toFixed(1)}" y2="${y(lo[i]).toFixed(1)}" stroke="${col}" stroke-width="0.8"/>`;
       body += `<rect x="${(x - Math.max(1.1, cw*0.3)).toFixed(1)}" y="${Math.min(yo,yc).toFixed(1)}" width="${(Math.max(2.2, cw*0.6)).toFixed(1)}" height="${Math.max(1, Math.abs(yc-yo)).toFixed(1)}" fill="${col}"/>`;
     }
-    const line = (v, col, label) => `
-      <line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W-padR}" y2="${y(v).toFixed(1)}" stroke="${col}" stroke-width="0.7" stroke-dasharray="3 3" opacity="0.85"/>
-      <text x="${padL+2}" y="${(y(v)-3).toFixed(1)}" fill="${col}" font-size="6.5" font-family="IBM Plex Mono, monospace">${label} ${fmtNum(v)}</text>`;
-    let lines = line(it.sl, '#f2555a', 'SL');
-    lines += line(it.entry, '#8b93ad', 'ENTRY');
-    it.tp.forEach((v,i) => { lines += line(v, '#22c58b', 'TP'+(i+1)); });
+
+    // siapin semua level (SL/ENTRY/TP1-4), urutin dari harga tertinggi ke terendah, terus rapihin
+    // posisi Y label-nya satu-satu biar gak numpuk/tabrakan kayak sebelumnya — garis putus-putus
+    // tetap di posisi harga yang BENERAN, cuma teksnya yang digeser + dikasih garis penghubung tipis
+    const levelDefs = [
+      { v: it.sl, col: '#f2555a', label: 'SL' },
+      { v: it.entry, col: '#8b93ad', label: 'ENTRY' },
+      ...it.tp.map((v,i) => ({ v, col: '#22c58b', label: 'TP' + (i+1) }))
+    ].map(l => ({ ...l, trueY: y(l.v) })).sort((a,b) => a.trueY - b.trueY);
+
+    const MIN_GAP = 11;
+    levelDefs[0].labelY = Math.max(padT + 5, levelDefs[0].trueY);
+    for(let i = 1; i < levelDefs.length; i++){
+      levelDefs[i].labelY = Math.max(levelDefs[i].trueY, levelDefs[i-1].labelY + MIN_GAP);
+    }
+    const overflow = levelDefs[levelDefs.length-1].labelY - (H - padB);
+    if(overflow > 0) levelDefs.forEach(l => l.labelY -= overflow);
+
+    let lines = '';
+    levelDefs.forEach(l => {
+      const text = `${l.label} ${fmtNum(l.v)}`;
+      const labelW = text.length * 3.5 + 5;
+      lines += `<line x1="${padL}" y1="${l.trueY.toFixed(1)}" x2="${W-padR}" y2="${l.trueY.toFixed(1)}" stroke="${l.col}" stroke-width="0.7" stroke-dasharray="3 3" opacity="0.75"/>`;
+      if(Math.abs(l.labelY - l.trueY) > 2){
+        lines += `<line x1="${padL}" y1="${l.trueY.toFixed(1)}" x2="${(padL+4).toFixed(1)}" y2="${l.labelY.toFixed(1)}" stroke="${l.col}" stroke-width="0.6" opacity="0.6"/>`;
+      }
+      lines += `<rect x="${padL}" y="${(l.labelY-6.3).toFixed(1)}" width="${labelW.toFixed(1)}" height="8" fill="#080b17" opacity="0.82" rx="1.5"/>`;
+      lines += `<text x="${(padL+2.5).toFixed(1)}" y="${(l.labelY-0.3).toFixed(1)}" fill="${l.col}" font-size="6.5" font-family="IBM Plex Mono, monospace">${text}</text>`;
+    });
+
     return `<svg class="mini-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${body}${lines}</svg>`;
   }
 
