@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Phoenix // Forex Terminal</title>
+<title>VortexAI // Forex Terminal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -27,6 +27,21 @@
     --radius: 18px;
   }
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  body[data-theme="light"]{
+    --bg:#f3f5fb; --bg-2:#eceff7; --card:#ffffff; --card-2:#f4f6fb;
+    --line: rgba(15,23,42,0.09); --line-2: rgba(15,23,42,0.16);
+    --text:#12151f; --text-dim:#666f8c;
+    background-image: none !important;
+  }
+  body[data-theme="dark"]{
+    --bg:#08090c; --bg-2:#0d0e12; --card:#17171d; --card-2:#1c1c23;
+    --line: rgba(255,255,255,0.06); --line-2: rgba(255,255,255,0.11);
+    background-image: none !important;
+  }
+  body[data-theme="light"] header{ background: rgba(243,245,251,0.85); }
+  body[data-theme="light"] .bottom-nav{ background: rgba(255,255,255,0.9); }
+  body[data-theme="dark"] header{ background: rgba(8,9,12,0.85); }
+  body[data-theme="dark"] .bottom-nav{ background: rgba(13,14,18,0.94); }
   html,body{
     background: var(--bg);
     color: var(--text);
@@ -69,6 +84,82 @@
   }
   .page-title{ font-size: 22px; font-weight: 700; letter-spacing:-0.4px; }
 
+  /* ==== greeting bar ==== */
+  .greet-row{ display:flex; align-items:center; gap:11px; }
+  .greet-avatar{
+    width:44px; height:44px; border-radius:50%; flex-shrink:0;
+    display:grid; place-items:center; font-weight:800; font-size:16px;
+    background: linear-gradient(140deg, var(--blue), #8b5cf6); color:#fff;
+  }
+  .greet-name{ display:flex; align-items:center; gap:7px; font-size:16px; font-weight:800; letter-spacing:-0.2px; }
+  .greet-badge{
+    font-size:9.5px; font-weight:800; letter-spacing:.3px; color:#cddaff;
+    background: rgba(77,125,255,0.22); border:1px solid rgba(77,125,255,0.35);
+    padding:2.5px 8px; border-radius:99px;
+  }
+  .greet-sub{ font-size:11.5px; color: var(--text-dim); margin-top:2px; }
+  .greet-actions{ margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .greet-icon{
+    width:20px; height:20px; color: var(--text-dim); cursor:pointer;
+    display:grid; place-items:center;
+  }
+  .greet-icon svg{ width:20px; height:20px; stroke: currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ==== stats card ==== */
+  .stats-card{
+    padding: 18px 18px 6px;
+    background: linear-gradient(150deg, rgba(77,125,255,0.16), rgba(20,26,48,0.5) 55%, var(--bg-2));
+    border: 1px solid var(--line-2); border-radius: var(--radius);
+  }
+  .stats-grid{ display:flex; }
+  .stats-col{ flex:1; }
+  .stats-col + .stats-col{ padding-left:16px; margin-left:16px; border-left:1px solid var(--line); }
+  .stats-label{ font-size:10px; font-weight:700; letter-spacing:1px; color: var(--text-dim); text-transform:uppercase; }
+  .stats-value{ font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-top:8px; }
+  .stats-value.accent{ color: var(--up); }
+  .stats-value.down{ color: var(--down); }
+  .stats-sub{ font-size:11.5px; color: var(--text-dim); margin-top:4px; }
+  .stats-spark{ height:70px; margin-top:14px; display:block; }
+
+  /* ==== pintasan ==== */
+  .pintasan-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+  .pintasan-item{
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding: 14px 4px; border-radius: 16px; cursor:pointer;
+    background: linear-gradient(160deg, var(--card), var(--bg-2)); border:1px solid var(--line);
+    text-align:center;
+  }
+  .pintasan-item:active{ transform: scale(0.97); }
+  .pintasan-icon{
+    width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+    background: rgba(77,125,255,0.14); font-size:17px;
+  }
+  .pintasan-icon.mint{ background: var(--up-soft); }
+  .pintasan-label{ font-size:10.5px; font-weight:600; color: var(--text-dim); line-height:1.3; }
+  .pintasan-new{
+    position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    font-size:8px; font-weight:800; letter-spacing:.4px; color:#fff;
+    background: var(--down); padding:2px 7px; border-radius:99px;
+    box-shadow: 0 0 10px rgba(242,85,90,0.6);
+  }
+  .allfeat-btn{
+    display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#cddaff;
+    background: rgba(77,125,255,0.14); border:1px solid rgba(77,125,255,0.3);
+    padding:8px 13px; border-radius:99px; cursor:pointer;
+  }
+
+  /* ==== chart card head ==== */
+  .chart-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 16px 0; }
+  .chart-head-title{ font-size:15px; font-weight:800; }
+  .chart-live{ font-size:11px; color: var(--text-dim); display:flex; align-items:center; gap:5px; }
+  .tf-tabs{ display:flex; gap:6px; padding: 12px 16px 4px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .tf-tabs::-webkit-scrollbar{ display:none; }
+  .tf-tab{
+    flex:0 0 auto; text-align:center; font-size:11.5px; font-weight:700; color: var(--text-dim);
+    padding:7px 14px; border-radius:10px; cursor:pointer; background: rgba(255,255,255,0.04); white-space:nowrap;
+  }
+  .tf-tab.active{ color:#fff; background: var(--blue); }
+
   main{ padding-top: 6px; }
   .view-panel{ display:none; flex-direction:column; gap:18px; }
   .view-panel.active-view{ display:flex; }
@@ -82,7 +173,7 @@
   .card-pad{ padding: 16px; }
 
   /* ==== hero price ==== */
-  .hero-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 16px 16px 6px; }
+  .hero-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 12px 16px 6px; }
   .hero-name{ display:flex; align-items:center; gap:8px; font-size: 14px; font-weight: 700; }
   .hero-name .dot{ width:8px; height:8px; border-radius:50%; background: var(--up); }
   .hero-badge{ font-size:10px; color: var(--text-dim); border:1px solid var(--line-2); padding:3px 9px; border-radius: 99px; }
@@ -255,6 +346,63 @@
   .acc-hero label{ font-size: 9.5px; letter-spacing:1px; color: var(--text-dim); }
   .acc-hero div{ font-size: 36px; font-weight:800; color: var(--blue); margin-top: 6px; letter-spacing:-1px; }
   .acc-hero small{ font-size: 11.5px; color: var(--text-dim); }
+
+  /* ==== Akun: profil & tema ==== */
+  .profile-row{ display:flex; align-items:center; gap:14px; }
+  .profile-avatar{
+    width:60px; height:60px; border-radius:50%; flex-shrink:0;
+    display:grid; place-items:center; font-weight:800; font-size:20px;
+    background: linear-gradient(140deg, var(--blue), #8b5cf6); color:#fff;
+  }
+  .profile-name{ font-size:19px; font-weight:800; letter-spacing:-0.3px; }
+  .profile-badge{
+    display:inline-block; margin-top:6px; font-size:10px; font-weight:800; letter-spacing:.4px; color:#cddaff;
+    background: rgba(77,125,255,0.2); border:1px solid rgba(77,125,255,0.35);
+    padding:3px 10px; border-radius:99px;
+  }
+  .acc-stats-card{
+    padding: 18px 18px 16px;
+    background: linear-gradient(150deg, rgba(77,125,255,0.16), rgba(20,26,48,0.5) 55%, var(--bg-2));
+    border: 1px solid var(--line-2); border-radius: var(--radius);
+  }
+  .acc-stats-foot{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:11px; color: var(--text-dim); }
+
+  .theme-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:9px; }
+  .theme-btn{
+    display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px 4px; cursor:pointer;
+    border-radius:14px; border:1px solid var(--line); background: rgba(255,255,255,0.03);
+    font-size:12px; font-weight:600; color: var(--text-dim);
+  }
+  .theme-btn svg{ width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .theme-btn.active{ color:#cddaff; border-color: var(--blue); background: rgba(77,125,255,0.1); }
+
+  .menu-list{ display:flex; flex-direction:column; }
+  .menu-item{
+    display:flex; align-items:center; gap:13px; padding: 14px 2px; cursor:pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .menu-item:last-child{ border-bottom:none; }
+  .menu-icon{
+    width:38px; height:38px; border-radius:11px; flex-shrink:0;
+    display:grid; place-items:center; font-size:16px; background: rgba(77,125,255,0.12);
+  }
+  .menu-label{ font-size:14px; font-weight:600; flex:1; }
+  .menu-right{ font-size:12.5px; color: var(--text-dim); display:flex; align-items:center; gap:5px; }
+  .menu-right.accent{ color: var(--up); font-weight:700; }
+  .menu-chevron{ color: var(--text-dim); font-size:16px; margin-left:2px; }
+  .menu-item.danger .menu-label{ color: var(--down); }
+  .menu-item.danger .menu-icon{ background: var(--down-soft); color: var(--down); }
+
+  /* ==== toast ==== */
+  .toast{
+    position: fixed; left:50%; bottom: 96px; transform: translateX(-50%) translateY(20px); z-index: 200;
+    background: rgba(20,26,48,0.96); border:1px solid var(--line-2); color:var(--text);
+    font-size:12.5px; font-weight:600; padding:11px 18px; border-radius:14px;
+    opacity:0; pointer-events:none; transition: opacity .2s ease, transform .2s ease;
+    max-width: 82vw; text-align:center; box-shadow: 0 12px 30px -10px rgba(0,0,0,0.6);
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
   .locked{ text-align:center; padding: 40px 20px; }
   .locked i{ font-size: 30px; font-style:normal; }
   .locked b{ display:block; margin-top: 12px; font-size: 15px; }
@@ -279,7 +427,7 @@
 
 <header>
   <div class="wrap head-row">
-    <div class="brand"><i>P</i>Phoenix</div>
+    <div class="brand"><i>V</i>VortexAI</div>
     <div class="clock"><span class="live-dot"></span><span id="clock-text">--:--:--</span></div>
   </div>
 </header>
@@ -288,7 +436,80 @@
 
 <!-- ================= BERANDA ================= -->
 <div class="view-panel" data-view="home">
+
+  <div class="greet-row">
+    <div class="greet-avatar">V</div>
+    <div>
+      <div class="greet-name">Halo, Trader<span class="greet-badge">MEMBER</span></div>
+      <div class="greet-sub" id="greetEmail">al••••••••••@gmail.com</div>
+    </div>
+    <div class="greet-actions">
+      <div class="greet-icon" data-goto="chat" title="Chat">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="greet-icon" data-goto="account" title="Pengaturan">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div class="stats-grid">
+      <div class="stats-col">
+        <div class="stats-label">Saldo Affiliasi</div>
+        <div class="stats-value">Rp0</div>
+        <div class="stats-sub">0 klien · Member Langganan</div>
+      </div>
+      <div class="stats-col">
+        <div class="stats-label">Performa Sinyal</div>
+        <div class="stats-value accent" id="statsPips">–</div>
+        <div class="stats-sub" id="statsSub">Menghitung riwayat sinyal…</div>
+      </div>
+    </div>
+    <div class="stats-spark" id="statsSpark"></div>
+  </div>
+
+  <div>
+    <div class="sec-head" style="margin-bottom:12px;">
+      <div class="sec-title">Pintasan</div>
+      <div class="allfeat-btn" data-goto="indicator">⊞ Semua fitur ›</div>
+    </div>
+    <div class="pintasan-grid">
+      <div class="pintasan-item" data-goto="signal">
+        <div class="pintasan-icon">📈</div>
+        <div class="pintasan-label">Analisis</div>
+      </div>
+      <div class="pintasan-item" data-goto="indicator">
+        <div class="pintasan-icon">📖</div>
+        <div class="pintasan-label">Materi</div>
+      </div>
+      <div class="pintasan-item" data-goto="account">
+        <span class="pintasan-new">NEW</span>
+        <div class="pintasan-icon">🏆</div>
+        <div class="pintasan-label">Kontes Demo</div>
+      </div>
+      <div class="pintasan-item" data-crypto-shortcut="1">
+        <div class="pintasan-icon mint">₿</div>
+        <div class="pintasan-label">Crypto</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
+    <div class="chart-head">
+      <div class="chart-head-title" id="chartHeadPair">XAU/USD</div>
+      <div class="chart-live"><span class="live-dot"></span>live · TradingView</div>
+    </div>
+    <div class="tf-tabs" id="tfTabs">
+      <div class="tf-tab" data-tf="1">1m</div>
+      <div class="tf-tab" data-tf="15">15m</div>
+      <div class="tf-tab" data-tf="30">30m</div>
+      <div class="tf-tab active" data-tf="60">1H</div>
+      <div class="tf-tab" data-tf="120">2H</div>
+      <div class="tf-tab" data-tf="240">4H</div>
+      <div class="tf-tab" data-tf="D">1D</div>
+      <div class="tf-tab" data-tf="4D">4D</div>
+    </div>
     <div class="hero-top">
       <div class="hero-name"><span class="dot"></span><span id="heroName">Emas / Dollar A.S.</span></div>
       <div class="hero-badge" id="heroTf">15M · LIVE</div>
@@ -438,35 +659,154 @@
 
 <!-- ================= AKUN ================= -->
 <div class="view-panel" data-view="account">
-  <div class="page-title" style="margin-bottom:12px;">Akun</div>
-  <div class="chips" id="accPeriodSelect">
-    <div class="chip active" data-period="all">Semua</div>
-    <div class="chip" data-period="today">Hari Ini</div>
-    <div class="chip" data-period="week">Minggu Ini</div>
-    <div class="chip" data-period="month">Bulan Ini</div>
-  </div>
-  <div class="card">
-    <div class="acc-hero">
-      <label>SIGNAL SELESAI · WINRATE</label>
-      <div id="accWinrate">–</div>
-      <small id="accSub">– sinyal</small>
-    </div>
-    <div class="card-pad" style="padding-top:0;">
-      <div class="stats">
-        <div class="stat"><span id="accWin" style="color:var(--up)">0</span><label>Win</label></div>
-        <div class="stat"><span id="accLoss" style="color:var(--down)">0</span><label>Loss</label></div>
-        <div class="stat"><span id="accActive">0</span><label>Aktif</label></div>
+
+  <div id="accMainView">
+    <div class="page-title" style="margin-bottom:16px;">Akun Saya</div>
+
+    <div class="profile-row" style="margin-bottom:18px;">
+      <div class="profile-avatar">V</div>
+      <div>
+        <div class="profile-name">Trader VortexAI</div>
+        <div class="profile-badge">PREMIUM</div>
       </div>
     </div>
+
+    <div class="acc-stats-card" style="margin-bottom:18px;">
+      <div class="stats-grid">
+        <div class="stats-col">
+          <div class="stats-label">Total Sinyal</div>
+          <div class="stats-value" id="accTotalSignals" style="font-size:19px;">–</div>
+          <div class="stats-sub" id="accActiveCount">–</div>
+        </div>
+        <div class="stats-col">
+          <div class="stats-label">Performa Sinyal</div>
+          <div class="stats-value accent" id="accStatsPips" style="font-size:19px;">–</div>
+          <div class="stats-sub" id="accStatsSub">–</div>
+        </div>
+      </div>
+      <div class="acc-stats-foot" id="greetEmail2">al••••••••••@gmail.com · VortexAI App</div>
+    </div>
+
+    <div class="sec-head" style="margin-bottom:10px;"><div class="sec-title">Tema Tampilan</div></div>
+    <div class="theme-grid" style="margin-bottom:20px;" id="themeGrid">
+      <div class="theme-btn" data-theme-btn="light">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        Terang
+      </div>
+      <div class="theme-btn" data-theme-btn="dark">
+        <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        Gelap
+      </div>
+      <div class="theme-btn active" data-theme-btn="phoenix">
+        <svg viewBox="0 0 24 24"><path d="M12 3l2.2 5.2L19 9l-4 3.4L16.2 18 12 15l-4.2 3L9 12.4 5 9l4.8-.8z"/></svg>
+        VortexAI
+      </div>
+    </div>
+
+    <div class="card card-pad menu-list" style="margin-bottom:18px;">
+      <div class="menu-item" data-menu="bahasa">
+        <div class="menu-icon">🌐</div>
+        <div class="menu-label">Bahasa / Language</div>
+        <div class="menu-right">🇮🇩 Indonesia</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="affiliate">
+        <div class="menu-icon">👥</div>
+        <div class="menu-label">Program Affiliate</div>
+        <div class="menu-right accent">Rp0</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="riwayat">
+        <div class="menu-icon">🕓</div>
+        <div class="menu-label">Riwayat &amp; Rekap</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="lot">
+        <div class="menu-icon">🧮</div>
+        <div class="menu-label">Simulasi Lot &amp; Equity</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="lot">
+        <div class="menu-icon">✨</div>
+        <div class="menu-label">Kalkulator Emas</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="kontes">
+        <div class="menu-icon">🏆</div>
+        <div class="menu-label">Kontes Trading</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="livechat">
+        <div class="menu-icon">🎧</div>
+        <div class="menu-label">Live Chat</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="akses">
+        <div class="menu-icon">🔑</div>
+        <div class="menu-label">Metode Akses</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="disclaimer">
+        <div class="menu-icon">🛡️</div>
+        <div class="menu-label">Disclaimer &amp; Risiko</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="legal">
+        <div class="menu-icon">📜</div>
+        <div class="menu-label">Legal &amp; Kebijakan</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item" data-menu="notif">
+        <div class="menu-icon">🔔</div>
+        <div class="menu-label">Aktifkan Notifikasi</div>
+        <div class="menu-chevron">›</div>
+      </div>
+      <div class="menu-item danger" data-menu="keluar">
+        <div class="menu-icon">🚪</div>
+        <div class="menu-label">Keluar</div>
+      </div>
+    </div>
+
+    <div class="foot">VortexAI App · versi tampilan 1.0</div>
   </div>
-  <div>
-    <div class="sec-head"><div class="sec-title">Semua Riwayat Sinyal</div></div>
-    <div class="sig-list" id="accHistList"><div class="empty">Belum ada riwayat.</div></div>
+
+  <div id="accHistoryView" style="display:none;">
+    <div class="detail-head">
+      <div class="back-btn" id="accHistBack">‹</div>
+      <div class="detail-title">Riwayat &amp; Rekap</div>
+    </div>
+    <div class="chips" id="accPeriodSelect">
+      <div class="chip active" data-period="all">Semua</div>
+      <div class="chip" data-period="today">Hari Ini</div>
+      <div class="chip" data-period="week">Minggu Ini</div>
+      <div class="chip" data-period="month">Bulan Ini</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="acc-hero">
+        <label>SIGNAL SELESAI · WINRATE</label>
+        <div id="accWinrate">–</div>
+        <small id="accSub">– sinyal</small>
+      </div>
+      <div class="card-pad" style="padding-top:0;">
+        <div class="stats">
+          <div class="stat"><span id="accWin" style="color:var(--up)">0</span><label>Win</label></div>
+          <div class="stat"><span id="accLoss" style="color:var(--down)">0</span><label>Loss</label></div>
+          <div class="stat"><span id="accActive">0</span><label>Aktif</label></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:18px;">
+      <div class="sec-head"><div class="sec-title">Semua Riwayat Sinyal</div></div>
+      <div class="sig-list" id="accHistList"><div class="empty">Belum ada riwayat.</div></div>
+    </div>
+    <div class="foot">Data chart disuplai oleh TradingView · analisa dihitung sendiri di browser kamu.</div>
   </div>
-  <div class="foot">Data chart disuplai oleh TradingView · analisa dihitung sendiri di browser kamu.</div>
+
 </div>
 
 </main>
+
+<div class="toast" id="toast"></div>
 
 <nav class="bottom-nav">
   <div class="nav-item active" data-view="home">
@@ -502,14 +842,14 @@
 
   /* ===================== PAIRS ===================== */
   const PAIRS = [
-    { label:'XAU/USD', name:'Emas / Dollar A.S.', sym:'GC=F',     kind:'fx',     tv:'OANDA:XAUUSD',    pip:0.1 },
-    { label:'BTC/USDT',name:'Bitcoin / USDT',     sym:'BTCUSDT',  kind:'crypto', tv:'BINANCE:BTCUSDT', pip:1 },
-    { label:'ETH/USDT',name:'Ethereum / USDT',    sym:'ETHUSDT',  kind:'crypto', tv:'BINANCE:ETHUSDT', pip:0.1 },
-    { label:'SOL/USDT',name:'Solana / USDT',      sym:'SOLUSDT',  kind:'crypto', tv:'BINANCE:SOLUSDT', pip:0.01 },
-    { label:'XRP/USDT',name:'XRP / USDT',         sym:'XRPUSDT',  kind:'crypto', tv:'BINANCE:XRPUSDT', pip:0.0001 },
-    { label:'EUR/USD', name:'Euro / Dollar A.S.', sym:'EURUSD=X', kind:'fx',     tv:'FX:EURUSD',       pip:0.0001 },
-    { label:'GBP/USD', name:'Pound / Dollar A.S.',sym:'GBPUSD=X', kind:'fx',     tv:'FX:GBPUSD',       pip:0.0001 },
-    { label:'USD/JPY', name:'Dollar A.S. / Yen',  sym:'USDJPY=X', kind:'fx',     tv:'FX:USDJPY',       pip:0.01 }
+    { key:'XAUUSD', label:'XAU/USD', name:'Emas / Dollar A.S.', sym:'GC=F',     kind:'fx',     tv:'OANDA:XAUUSD',    pip:0.1 },
+    { key:'BTCUSDT',label:'BTC/USDT',name:'Bitcoin / USDT',     sym:'BTCUSDT',  kind:'crypto', tv:'BINANCE:BTCUSDT', pip:1 },
+    { key:'ETHUSDT',label:'ETH/USDT',name:'Ethereum / USDT',    sym:'ETHUSDT',  kind:'crypto', tv:'BINANCE:ETHUSDT', pip:0.1 },
+    { key:'SOLUSDT',label:'SOL/USDT',name:'Solana / USDT',      sym:'SOLUSDT',  kind:'crypto', tv:'BINANCE:SOLUSDT', pip:0.01 },
+    { key:'XRPUSDT',label:'XRP/USDT',name:'XRP / USDT',         sym:'XRPUSDT',  kind:'crypto', tv:'BINANCE:XRPUSDT', pip:0.0001 },
+    { key:'EURUSD', label:'EUR/USD', name:'Euro / Dollar A.S.', sym:'EURUSD=X', kind:'fx',     tv:'FX:EURUSD',       pip:0.0001 },
+    { key:'GBPUSD', label:'GBP/USD', name:'Pound / Dollar A.S.',sym:'GBPUSD=X', kind:'fx',     tv:'FX:GBPUSD',       pip:0.0001 },
+    { key:'USDJPY', label:'USD/JPY', name:'Dollar A.S. / Yen',  sym:'USDJPY=X', kind:'fx',     tv:'FX:USDJPY',       pip:0.01 }
   ];
   let activePair = PAIRS[0];
 
@@ -534,12 +874,35 @@
     return 'New York';
   }
 
+  /* ===================== SERVER VORTEXAI (Cloudflare Worker) ===================== */
+  // Isi URL Worker kamu di bawah ini (dikasih Cloudflare pas deploy, formatnya
+  // https://nama-worker.username.workers.dev). SELAMA INI KOSONG, AI & data harga
+  // TIDAK akan jalan — halaman ini gak bisa fetch data langsung dari internet.
+  const VORTEX_WORKER_URL = 'https://h2h-gateway.vinzprostore.workers.dev';
+
+  function vortexReady(){
+    return !!VORTEX_WORKER_URL && VORTEX_WORKER_URL.indexOf('ISI_URL_WORKER') !== 0;
+  }
+
+  // ambil hasil dewan-AI yang UDAH dianalisa duluan sama Cron Trigger di server
+  // (bukan manggil OpenRouter langsung dari HP — lebih cepat, hemat baterai/kuota,
+  // dan API key-nya gak nempel di kode HTML ini sama sekali)
+  async function fetchServerSignal(pair){
+    if(!vortexReady()) throw new Error('URL Worker belum diisi (VORTEX_WORKER_URL)');
+    const res = await fetchWithTimeout(`${VORTEX_WORKER_URL}/vortex/signal?pair=${pair.key}`, {}, 12000);
+    if(res.status === 404) throw new Error('Belum ada hasil analisa buat pair ini — cron di server belum sempat jalan, coba lagi beberapa menit lagi');
+    if(!res.ok) throw new Error('Worker status ' + res.status);
+    const j = await res.json();
+    if(!j.success) throw new Error(j.message || 'Gagal ambil sinyal dari server');
+    return j.data;
+  }
+
   /* ===================== NAV ===================== */
   function switchView(view){
     document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active-view', p.dataset.view === view));
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.view === view));
     window.scrollTo({ top:0, behavior:'instant' });
-    if(view === 'account') renderAccountPage();
+    if(view === 'account'){ closeAccHistory(); renderAccProfileStats(); }
     if(view === 'signal') closeDetail();
   }
   document.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => switchView(i.dataset.view)));
@@ -575,7 +938,7 @@
   function loadHeroChart(){
     tvWidget(document.getElementById('heroChart'),
       'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js', {
-        autosize:true, symbol: activePair.tv, interval:'15', timezone:'Asia/Jakarta',
+        autosize:true, symbol: activePair.tv, interval: chartTF, timezone:'Asia/Jakarta',
         theme:'dark', style:'1', locale:'in', hide_top_toolbar:true, hide_legend:true,
         hide_side_toolbar:true, allow_symbol_change:false, withdateranges:false,
         details:false, hotlist:false, calendar:false, save_image:false,
@@ -741,43 +1104,7 @@
     return { resistance: hh, support: ll };
   }
 
-  // ---- ambil candle ----
-  async function fetchCandles(symbol, kind, tf){
-    if(kind === 'crypto'){
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${tf}&limit=200`);
-      if(!res.ok) throw new Error('Binance menolak permintaan (status ' + res.status + ')');
-      const k = await res.json();
-      return {
-        highs: k.map(c => parseFloat(c[2])),
-        lows: k.map(c => parseFloat(c[3])),
-        closes: k.map(c => parseFloat(c[4]))
-      };
-    }
-    // forex / komoditas — sumber gratis tanpa API key (best effort, bisa kena CORS)
-    const range = tf === '1h' ? '1mo' : '5d';
-    const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${tf === '1h' ? '60m' : '15m'}&range=${range}`;
-    const targets = [yUrl, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(yUrl)];
-    let json = null, lastErr = null;
-    for(const url of targets){
-      try{
-        const res = await fetch(url);
-        if(!res.ok) throw new Error('status ' + res.status);
-        json = await res.json();
-        break;
-      }catch(e){ lastErr = e; }
-    }
-    if(!json) throw new Error('Data forex gratis lagi gak bisa diakses dari browser (CORS/limit). Pakai gauge TradingView di section 02 buat pair ini. Detail: ' + (lastErr && lastErr.message));
-    const q = json.chart && json.chart.result && json.chart.result[0];
-    if(!q) throw new Error('Format data forex gak dikenal');
-    const ind = q.indicators.quote[0];
-    const highs = [], lows = [], closes = [];
-    for(let i = 0; i < ind.close.length; i++){
-      if(ind.close[i] == null || ind.high[i] == null || ind.low[i] == null) continue;
-      highs.push(ind.high[i]); lows.push(ind.low[i]); closes.push(ind.close[i]);
-    }
-    if(closes.length < 60) throw new Error('Data candle forex terlalu sedikit buat dianalisis');
-    return { highs, lows, closes };
-  }
+  // ---- ambil candle (lihat DATA CANDLE section di bawah untuk implementasi asli) ----
 
   // ---- analisis satu timeframe: skor -2..+2 per indikator ----
   function analyze(data){
@@ -881,41 +1208,34 @@
     if(norm <= -0.18) return 'SELL';
     return 'NEUTRAL';
   }
-  /* ===================== DATA CANDLE ===================== */
-  const TF_BINANCE = { '15m':'15m', '1h':'1h', '4h':'4h', '1d':'1d' };
-  const TF_YAHOO   = { '15m':{i:'15m', r:'5d'}, '1h':{i:'60m', r:'1mo'}, '4h':{i:'60m', r:'3mo'}, '1d':{i:'1d', r:'6mo'} };
+  /* ===================== DATA CANDLE (lewat Worker VortexAI) ===================== */
+  // Semua data candle sekarang diambil dari server (Worker) lewat /vortex/candles,
+  // BUKAN langsung ke Yahoo/Binance dari HP — soalnya halaman lokal (content://, file://)
+  // sering diblokir browser buat fetch langsung ke internet. Worker yang fetch-nya,
+  // hasilnya baru dikirim balik ke sini dalam format JSON biasa.
 
-  async function fetchCandles(symbol, kind, tf){
-    if(kind === 'crypto'){
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${TF_BINANCE[tf]||'15m'}&limit=200`);
-      if(!res.ok) throw new Error('Binance menolak permintaan (status ' + res.status + ')');
-      const k = await res.json();
-      return { highs:k.map(c=>parseFloat(c[2])), lows:k.map(c=>parseFloat(c[3])), closes:k.map(c=>parseFloat(c[4])), opens:k.map(c=>parseFloat(c[1])) };
-    }
-    const cfg = TF_YAHOO[tf] || TF_YAHOO['15m'];
-    const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${cfg.i}&range=${cfg.r}`;
-    const targets = [yUrl, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(yUrl)];
-    let json = null, lastErr = null;
-    for(const url of targets){
-      try{ const res = await fetch(url); if(!res.ok) throw new Error('status ' + res.status); json = await res.json(); break; }
-      catch(e){ lastErr = e; }
-    }
-    if(!json) throw new Error('Data pasar gratis lagi gak bisa diakses dari browser (CORS/limit). Detail: ' + (lastErr && lastErr.message));
-    const q = json.chart && json.chart.result && json.chart.result[0];
-    if(!q) throw new Error('Format data gak dikenal');
-    const ind = q.indicators.quote[0];
-    const highs=[], lows=[], closes=[], opens=[];
-    for(let i=0;i<ind.close.length;i++){
-      if(ind.close[i]==null||ind.high[i]==null||ind.low[i]==null) continue;
-      highs.push(ind.high[i]); lows.push(ind.low[i]); closes.push(ind.close[i]); opens.push(ind.open[i]==null?ind.close[i]:ind.open[i]);
-    }
-    if(closes.length < 60) throw new Error('Data candle terlalu sedikit buat dianalisis');
-    return { highs, lows, closes, opens };
+  // fetch dengan batas waktu — jangan sampai nge-hang lama nunggu koneksi yang gak akan connect
+  function fetchWithTimeout(url, opts, ms){
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms || 8000);
+    return fetch(url, Object.assign({}, opts, { signal: controller.signal })).finally(() => clearTimeout(timer));
+  }
+
+  // ambil candle 1 timeframe buat 1 pair, lewat Worker (dipakai buat harga live,
+  // tab "Analisa" indikator, dan mini-chart di riwayat sinyal)
+  async function fetchCandles(pair, tf){
+    if(!vortexReady()) throw new Error('URL Worker belum diisi (VORTEX_WORKER_URL) — data harga gak bisa diambil.');
+    const res = await fetchWithTimeout(`${VORTEX_WORKER_URL}/vortex/candles?pair=${pair.key}&tf=${tf}`, {}, 12000);
+    if(!res.ok) throw new Error('Worker status ' + res.status);
+    const j = await res.json();
+    if(!j.success) throw new Error(j.message || 'Gagal ambil data candle dari server');
+    return j.data.candles;
   }
 
   /* ===================== HERO ===================== */
   function renderHero(data){
     document.getElementById('heroName').textContent = activePair.name;
+    document.getElementById('chartHeadPair').textContent = activePair.label;
     if(!data){ document.getElementById('heroPrice').textContent = '–'; document.getElementById('heroChange').textContent = 'Menunggu data harga...'; return; }
     const c = data.closes, last = c[c.length-1];
     const ref = c[Math.max(0, c.length - 96)];
@@ -925,6 +1245,29 @@
     el.className = 'hero-change' + (diff < 0 ? ' down' : '');
     el.textContent = (diff>=0?'+':'') + fmtNum(diff) + ' (' + (diff>=0?'+':'') + pct.toFixed(2) + '%)';
   }
+
+  /* ==== timeframe tabs (tampilan chart doang, gak ngaruh ke mesin analisa 15m) ==== */
+  let chartTF = '60';
+  document.querySelectorAll('#tfTabs .tf-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#tfTabs .tf-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      chartTF = tab.dataset.tf;
+      loadHeroChart();
+    });
+  });
+
+  /* ==== shortcut Crypto di Pintasan ==== */
+  document.querySelectorAll('[data-crypto-shortcut]').forEach(el => {
+    el.addEventListener('click', () => {
+      const cryptoPair = PAIRS.find(p => p.kind === 'crypto');
+      if(cryptoPair){
+        activePair = cryptoPair;
+        renderHomePairChips(); renderSigPairChips(); loadHeroChart(); renderHero(null); runAnalysis();
+      }
+      switchView('signal');
+    });
+  });
 
   function renderHomePairChips(){
     const box = document.getElementById('homePairChips');
@@ -941,6 +1284,66 @@
       activePair = PAIRS.find(p => p.label === chip.dataset.pair);
       renderHomePairChips(); renderSigPairChips(); loadHeroChart(); renderHero(null); runAnalysis();
     }));
+  }
+
+  /* ==== kartu performa sinyal di Beranda ==== */
+  function computeSignalPerformance(list){
+    const closed = list.filter(x => x.status === 'TP_HIT' || x.status === 'SL_HIT' || (x.status === 'BE' && x.tpHit > 0));
+    const sorted = closed.slice().sort((a,b) => new Date(a.time) - new Date(b.time));
+    let win = 0, loss = 0, cumPips = 0;
+    const points = [0];
+    sorted.forEach(it => {
+      const pip = it.pip || 0.0001;
+      let pips;
+      if(it.status === 'SL_HIT'){
+        pips = -Math.round(Math.abs(it.entry - it.sl) / pip);
+        loss++;
+      } else {
+        const level = Math.min(Math.max(1, it.tpHit), it.tp.length) - 1;
+        pips = Math.round(Math.abs(it.tp[level] - it.entry) / pip);
+        win++;
+      }
+      cumPips += pips;
+      points.push(cumPips);
+    });
+    const closedCount = win + loss;
+    return { totalPips: cumPips, winrate: closedCount ? Math.round(win/closedCount*100) : 0, win, loss, closedCount, points };
+  }
+
+  function renderStatsSpark(points){
+    const box = document.getElementById('statsSpark');
+    if(!points || points.length < 2){ box.innerHTML = ''; return; }
+    const W = 300, H = 70;
+    const min = Math.min(...points), max = Math.max(...points);
+    const span = (max - min) || 1;
+    const step = W / (points.length - 1);
+    const coords = points.map((v,i) => [i*step, H - ((v-min)/span)*H]);
+    const line = coords.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const area = line + ` L${W},${H} L0,${H} Z`;
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%;">
+      <defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22c58b" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#22c58b" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${area}" fill="url(#sparkGrad)" stroke="none"/>
+      <path d="${line}" fill="none" stroke="#22c58b" stroke-width="2"/>
+    </svg>`;
+  }
+
+  function renderHomeStats(){
+    const perf = computeSignalPerformance(HISTORY);
+    const pipsEl = document.getElementById('statsPips');
+    const subEl = document.getElementById('statsSub');
+    if(perf.closedCount === 0){
+      pipsEl.textContent = '–';
+      pipsEl.className = 'stats-value';
+      subEl.textContent = 'Belum ada sinyal yang selesai.';
+    } else {
+      pipsEl.textContent = (perf.totalPips >= 0 ? '+' : '') + perf.totalPips.toLocaleString('id-ID') + ' pips';
+      pipsEl.className = 'stats-value accent' + (perf.totalPips < 0 ? ' down' : '');
+      subEl.textContent = perf.winrate + '% winrate · ' + perf.closedCount + ' sinyal';
+    }
+    renderStatsSpark(perf.points);
   }
 
   /* ===================== RIWAYAT / SIGNAL STORE ===================== */
@@ -1053,6 +1456,7 @@
   }
 
   function renderAllSignalViews(){
+    renderHomeStats();
     const home = document.getElementById('homeSignals');
     const recent = HISTORY.slice(0, 4);
     home.innerHTML = recent.length ? recent.map(signalCard).join('')
@@ -1156,7 +1560,9 @@
     const it = detailItem; if(!it) return;
     const host = document.getElementById('detailChart'); if(!host) return;
     try{
-      const d = await fetchCandles(it.sym || (PAIRS.find(p=>p.label===it.pair)||{}).sym, it.kind || 'crypto', detailTf);
+      const pr = PAIRS.find(p => p.sym === it.sym) || PAIRS.find(p => p.label === it.pair);
+      if(!pr) throw new Error('Pair gak dikenal buat riwayat ini');
+      const d = await fetchCandles(pr, detailTf);
       if(!detailItem || detailItem.id !== it.id) return;
       host.innerHTML = miniChartSVG(d, it);
     }catch(e){
@@ -1202,8 +1608,8 @@
 
     try{
       const [d15, d1h] = await Promise.all([
-        fetchCandles(pair.sym, pair.kind, '15m'),
-        fetchCandles(pair.sym, pair.kind, '1h').catch(() => null)
+        fetchCandles(pair, '15m'),
+        fetchCandles(pair, '1h').catch(() => null)
       ]);
       if(activePair.label !== pair.label) return;
 
@@ -1277,17 +1683,30 @@
 
       const price = a15.price;
       const detailEl = document.getElementById('sigDetail');
+      detailEl.innerHTML = `<span style="color:var(--text-dim)">🤖 Ngambil hasil dewan-AI dari server...</span>`;
+
+      const fallbackText = (isBuy || isSell)
+        ? `<b>Kesimpulan:</b> ${agree} dari ${a15.indicatorCount} indikator ${isBuy ? 'bullish' : 'bearish'} di TF 15m${a1h ? (mtf === 'aligned' ? ', dan TF 1H searah' : mtf === 'conflict' ? ', tapi TF 1H berlawanan (hati-hati)' : '') : ''}. SL dipasang 1.5×ATR (${(a15.atr*1.5/price*100).toFixed(2)}% dari harga), TP1–TP4 ditarik di 0.5R, 1R, 1.5R, dan 2R.<br><br><b>Sinyal batal kalau:</b> harga ${isBuy ? 'tutup di bawah ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik negatif' : 'tutup di atas ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik positif'}.`
+        : `<b>Kesimpulan:</b> indikator lagi kebelah (${a15.bullCount} bullish vs ${a15.bearCount} bearish). Belum ada setup dengan rasio risiko yang layak — <b>lebih aman nunggu</b>. Pantau breakout dari ${fmtPrice(a15.support)} – ${fmtPrice(a15.resistance)}.`;
 
       if(isBuy || isSell){
         const risk = a15.atr * 1.5;
         const dir = isBuy ? 1 : -1;
         const sl = price - dir * risk;
         const tps = [0.5, 1, 1.5, 2].map(m => price + dir * risk * m);
-        const riskPct = (risk / price * 100).toFixed(2);
-        detailEl.innerHTML = `<b>Kesimpulan:</b> ${agree} dari ${a15.indicatorCount} indikator ${isBuy ? 'bullish' : 'bearish'} di TF 15m${a1h ? (mtf === 'aligned' ? ', dan TF 1H searah' : mtf === 'conflict' ? ', tapi TF 1H berlawanan (hati-hati)' : '') : ''}. SL dipasang 1.5×ATR (${riskPct}% dari harga), TP1–TP4 ditarik di 0.5R, 1R, 1.5R, dan 2R.<br><br><b>Sinyal batal kalau:</b> harga ${isBuy ? 'tutup di bawah ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik negatif' : 'tutup di atas ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik positif'}.`;
         await logSignal(pair, isBuy ? 'BUY' : 'SELL', price, sl, tps);
-      } else {
-        detailEl.innerHTML = `<b>Kesimpulan:</b> indikator lagi kebelah (${a15.bullCount} bullish vs ${a15.bearCount} bearish). Belum ada setup dengan rasio risiko yang layak — <b>lebih aman nunggu</b>. Pantau breakout dari ${fmtPrice(a15.support)} – ${fmtPrice(a15.resistance)}.`;
+      }
+
+      try{
+        // hasil dewan-AI diambil dari Worker (udah dianalisa duluan sama Cron Trigger di server,
+        // bukan manggil OpenRouter dari HP lagi)
+        const sig = await fetchServerSignal(pair);
+        const modelsShort = (sig.models || '').split(',').map(s => s.trim().split('/').pop()).filter(Boolean).slice(0, 4).join(', ');
+        const updated = sig.updated_at ? new Date(sig.updated_at).toLocaleTimeString('id-ID', {hour12:false}) : '-';
+        detailEl.innerHTML = `<b>🤖 Konsensus ${sig.agree_count}/${sig.total_votes} AI · ${sig.verdict}:</b> ${(sig.narrative || '').replace(/\n/g,'<br>')}` +
+          `<div style="margin-top:10px;font-size:10px;color:var(--text-dim);">Dianalisa oleh: ${modelsShort || 'AI gratis via OpenRouter'}${sig.tf_picks ? ' · TF acuan: ' + sig.tf_picks : ''} · Update server ${updated} WIB</div>`;
+      }catch(err){
+        detailEl.innerHTML = fallbackText + `<br><br><span style="color:var(--text-dim);font-size:10px;">(Dewan AI gagal dimuat: ${err.message} — pakai kesimpulan sistem sebagai gantinya)</span>`;
       }
 
       await updateStatuses({ [pair.label]: price });
@@ -1388,6 +1807,91 @@
     });
   });
 
+  /* ===================== AKUN: sub-view Riwayat ===================== */
+  function openAccHistory(){
+    document.getElementById('accMainView').style.display = 'none';
+    document.getElementById('accHistoryView').style.display = 'block';
+    renderAccountPage();
+  }
+  function closeAccHistory(){
+    document.getElementById('accHistoryView').style.display = 'none';
+    document.getElementById('accMainView').style.display = 'block';
+  }
+  document.getElementById('accHistBack').addEventListener('click', closeAccHistory);
+
+  /* ===================== AKUN: kartu profil (Aktif Sampai / Performa Sinyal) ===================== */
+  function renderAccProfileStats(){
+    document.getElementById('accTotalSignals').textContent = HISTORY.length;
+    const activeCount = HISTORY.filter(x => x.status === 'ACTIVE').length;
+    document.getElementById('accActiveCount').textContent = activeCount + ' aktif sekarang';
+
+    const perf = computeSignalPerformance(HISTORY);
+    const pipsEl = document.getElementById('accStatsPips');
+    const subEl = document.getElementById('accStatsSub');
+    if(perf.closedCount === 0){
+      pipsEl.textContent = '–'; pipsEl.className = 'stats-value'; subEl.textContent = 'Belum ada sinyal selesai.';
+    } else {
+      pipsEl.textContent = (perf.totalPips >= 0 ? '+' : '') + perf.totalPips.toLocaleString('id-ID') + ' pips';
+      pipsEl.className = 'stats-value accent' + (perf.totalPips < 0 ? ' down' : '');
+      subEl.textContent = perf.winrate + '% winrate · ' + perf.closedCount + ' sinyal';
+    }
+  }
+
+  /* ===================== AKUN: tema tampilan ===================== */
+  function applyTheme(theme){
+    if(theme === 'phoenix') document.body.removeAttribute('data-theme');
+    else document.body.setAttribute('data-theme', theme);
+    document.querySelectorAll('#themeGrid .theme-btn').forEach(b => b.classList.toggle('active', b.dataset.themeBtn === theme));
+    try{ localStorage.setItem('phoenix-theme', theme); }catch(e){}
+  }
+  document.querySelectorAll('#themeGrid .theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.themeBtn));
+  });
+  (function initTheme(){
+    let saved = 'phoenix';
+    try{ saved = localStorage.getItem('phoenix-theme') || 'phoenix'; }catch(e){}
+    applyTheme(saved);
+  })();
+
+  /* ===================== toast ===================== */
+  let toastTimer = null;
+  function showToast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  /* ===================== AKUN: menu list ===================== */
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const key = item.dataset.menu;
+      if(key === 'riwayat'){ openAccHistory(); return; }
+      if(key === 'lot'){
+        switchView('indicator');
+        const calcTab = document.querySelector('#indTabs .chip[data-sub="calc"]');
+        if(calcTab) calcTab.click();
+        return;
+      }
+      if(key === 'livechat'){ switchView('chat'); return; }
+      if(key === 'keluar'){
+        if(confirm('Yakin mau keluar dari akun?')) showToast('Sistem akun/login belum terhubung — belum ada apa-apa buat di-keluarin 🙂');
+        return;
+      }
+      const messages = {
+        bahasa: 'Pilihan bahasa lain segera hadir — saat ini masih Bahasa Indonesia.',
+        affiliate: 'Program Affiliate segera hadir.',
+        kontes: 'Kontes Trading segera hadir.',
+        akses: 'Metode akses akun kamu lewat email login — belum ada perubahan yang bisa dilakukan di sini.',
+        disclaimer: 'Ini dashboard baca chart, bukan saran finansial — keputusan trading tetap di tangan kamu.',
+        legal: 'Halaman legal & kebijakan segera hadir.',
+        notif: 'Notifikasi push segera hadir.'
+      };
+      showToast(messages[key] || 'Fitur ini segera hadir.');
+    });
+  });
+
   /* ===================== SCANNER SEMUA PAIR ===================== */
   function decide(a15, a1h){
     let score = a15.total, maxScore = a15.maxTotal, mtf = 'none';
@@ -1411,8 +1915,8 @@
     await Promise.all(PAIRS.map(async (pair) => {
       try{
         const [d15, d1h] = await Promise.all([
-          fetchCandles(pair.sym, pair.kind, '15m'),
-          fetchCandles(pair.sym, pair.kind, '1h').catch(() => null)
+          fetchCandles(pair, '15m'),
+          fetchCandles(pair, '1h').catch(() => null)
         ]);
         const a15 = analyze(d15);
         const a1h = d1h ? analyze(d1h) : null;
