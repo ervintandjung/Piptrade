@@ -84,7 +84,18 @@
   }
   .page-title{ font-size: 22px; font-weight: 700; letter-spacing:-0.4px; }
 
+  .ticker-wrap{
+    margin: 0 -16px 4px; border-top:1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.02); overflow:hidden;
+  }
+
   /* ==== greeting bar ==== */
+  /* ==== ticker tape harga live, paling atas Beranda ==== */
+  .ticker-wrap{
+    margin: -6px -16px 4px; border-bottom: 1px solid var(--line);
+    background: var(--bg-2); overflow:hidden; height: 46px;
+  }
+
   .greet-row{ display:flex; align-items:center; gap:11px; }
   .greet-avatar{
     width:44px; height:44px; border-radius:50%; flex-shrink:0;
@@ -487,6 +498,8 @@
 <!-- ================= BERANDA ================= -->
 <div class="view-panel" data-view="home">
 
+  <div class="ticker-wrap" id="tickerTape"></div>
+
   <div class="greet-row">
     <div class="greet-avatar">V</div>
     <div>
@@ -505,11 +518,6 @@
 
   <div class="stats-card">
     <div class="stats-grid">
-      <div class="stats-col">
-        <div class="stats-label">Saldo Affiliasi</div>
-        <div class="stats-value">Rp0</div>
-        <div class="stats-sub">0 klien · Member Langganan</div>
-      </div>
       <div class="stats-col">
         <div class="stats-label">Performa Sinyal</div>
         <div class="stats-value accent" id="statsPips">–</div>
@@ -931,6 +939,9 @@
   // https://nama-worker.username.workers.dev). SELAMA INI KOSONG, AI & data harga
   // TIDAK akan jalan — halaman ini gak bisa fetch data langsung dari internet.
   const VORTEX_WORKER_URL = 'https://h2h-gateway.vinzprostore.workers.dev';
+  // ambang "momentum kuat" biar sinyal gak trickle — makin kecil angkanya, makin gampang
+  // sinyal ke-catat (lebih banyak momen kesangkut, tapi juga lebih longgar dari sekadar "kuat banget")
+  const MOMENTUM_ADX_MIN = 20;
 
   function vortexReady(){
     return !!VORTEX_WORKER_URL && VORTEX_WORKER_URL.indexOf('ISI_URL_WORKER') !== 0;
@@ -985,6 +996,28 @@
     s.type = 'text/javascript'; s.async = true; s.src = src; s.text = JSON.stringify(cfg);
     wrap.appendChild(s);
     target.appendChild(wrap);
+  }
+
+  // ticker berjalan di paling atas Beranda (harga beberapa pair sekaligus, geser sendiri) —
+  // widget script TradingView, bukan fetch(), jadi tetap jalan di halaman content://
+  function loadTickerTape(){
+    const host = document.getElementById('tickerTape');
+    if(!host || host.dataset.loaded) return;
+    host.dataset.loaded = '1';
+    tvWidget(host, 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js', {
+      symbols: [
+        { proName:'FX_IDC:EURUSD', title:'EUR/USD' },
+        { proName:'FX_IDC:GBPUSD', title:'GBP/USD' },
+        { proName:'FX_IDC:USDJPY', title:'USD/JPY' },
+        { proName:'FX_IDC:AUDUSD', title:'AUD/USD' },
+        { proName:'OANDA:XAUUSD', title:'XAU/USD' },
+        { proName:'BINANCE:BTCUSDT', title:'BTC/USDT' },
+        { proName:'BINANCE:ETHUSDT', title:'ETH/USDT' },
+        { proName:'BINANCE:SOLUSDT', title:'SOL/USDT' }
+      ],
+      showSymbolLogo: true, isTransparent: true, displayMode: 'adaptive',
+      colorTheme: 'dark', locale: 'in'
+    }, '46px');
   }
 
   function loadHeroChart(){
@@ -1431,7 +1464,7 @@
       time: new Date().toISOString(),
       status: 'ACTIVE'
     });
-    await saveHistoryList(list.slice(0, 60));
+    await saveHistoryList(list.slice(0, 300));
   }
 
   function normalize(item){
@@ -1794,11 +1827,20 @@
       const detailEl = document.getElementById('sigDetail');
       detailEl.innerHTML = `<span style="color:var(--text-dim)">🤖 Ngambil hasil dewan-AI dari server...</span>`;
 
+      // sinyal cuma DICATAT (masuk Signal Terbaru / kartu SINYAL LIVE) kalau momentumnya beneran
+      // kuat — sama persis kayak gate di server (STRONG BUY/SELL, atau BUY/SELL dengan ADX≥28).
+      // Verdict/badge di atas tetap nampilin kondisi pasar apa adanya (termasuk yang lemah),
+      // tapi yang lemah gak akan nyangkut jadi "sinyal" biar gak trickle kayak sebelumnya.
+      const isStrong = verdict === 'STRONG BUY' || verdict === 'STRONG SELL';
+      const isTrending = (isBuy || isSell) && (a15.adx >= MOMENTUM_ADX_MIN || mtf === 'aligned');
+      const momentumOk = isStrong || isTrending;
+
       const fallbackText = (isBuy || isSell)
-        ? `<b>Kesimpulan:</b> ${agree} dari ${a15.indicatorCount} indikator ${isBuy ? 'bullish' : 'bearish'} di TF 15m${a1h ? (mtf === 'aligned' ? ', dan TF 1H searah' : mtf === 'conflict' ? ', tapi TF 1H berlawanan (hati-hati)' : '') : ''}. SL dipasang 1.5×ATR (${(a15.atr*1.5/price*100).toFixed(2)}% dari harga), TP1–TP4 ditarik di 0.5R, 1R, 1.5R, dan 2R.<br><br><b>Sinyal batal kalau:</b> harga ${isBuy ? 'tutup di bawah ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik negatif' : 'tutup di atas ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik positif'}.`
+        ? `<b>Kesimpulan:</b> ${agree} dari ${a15.indicatorCount} indikator ${isBuy ? 'bullish' : 'bearish'} di TF 15m${a1h ? (mtf === 'aligned' ? ', dan TF 1H searah' : mtf === 'conflict' ? ', tapi TF 1H berlawanan (hati-hati)' : '') : ''}. SL dipasang 1.5×ATR (${(a15.atr*1.5/price*100).toFixed(2)}% dari harga), TP1–TP4 ditarik di 0.5R, 1R, 1.5R, dan 2R.<br><br><b>Sinyal batal kalau:</b> harga ${isBuy ? 'tutup di bawah ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik negatif' : 'tutup di atas ' + fmtPrice(a15.ema21) + ' (EMA21) atau MACD histogram balik positif'}.` +
+          (momentumOk ? '' : `<br><br><span style="color:var(--text-dim);font-size:11px;">⏳ Momentum masih lemah (ADX ${a15.adx.toFixed(0)}) — belum dicatat sebagai sinyal resmi, cuma preview arah aja. Nunggu ADX ≥ ${MOMENTUM_ADX_MIN} atau sinyal nguat jadi STRONG.</span>`)
         : `<b>Kesimpulan:</b> indikator lagi kebelah (${a15.bullCount} bullish vs ${a15.bearCount} bearish). Belum ada setup dengan rasio risiko yang layak — <b>lebih aman nunggu</b>. Pantau breakout dari ${fmtPrice(a15.support)} – ${fmtPrice(a15.resistance)}.`;
 
-      if(isBuy || isSell){
+      if((isBuy || isSell) && momentumOk){
         const risk = a15.atr * 1.5;
         const dir = isBuy ? 1 : -1;
         const sl = price - dir * risk;
@@ -1808,12 +1850,15 @@
 
       try{
         // hasil dewan-AI diambil dari Worker (udah dianalisa duluan sama Cron Trigger di server,
-        // bukan manggil OpenRouter dari HP lagi)
+        // bukan manggil OpenRouter dari HP lagi) — sekarang bisa dari TF mana aja (1m/15m/30m/1h/4h)
         const sig = await fetchServerSignal(pair);
         const modelsShort = (sig.models || '').split(',').map(s => s.trim().split('/').pop()).filter(Boolean).slice(0, 4).join(', ');
         const updated = sig.updated_at ? new Date(sig.updated_at).toLocaleTimeString('id-ID', {hour12:false}) : '-';
-        detailEl.innerHTML = `<b>🤖 Konsensus ${sig.agree_count}/${sig.total_votes} AI · ${sig.verdict}:</b> ${(sig.narrative || '').replace(/\n/g,'<br>')}` +
-          `<div style="margin-top:10px;font-size:10px;color:var(--text-dim);">Dianalisa oleh: ${modelsShort || 'AI gratis via OpenRouter'}${sig.tf_picks ? ' · TF acuan: ' + sig.tf_picks : ''} · Update server ${updated} WIB</div>`;
+        const tfBadge = sig.timeframe ? sig.timeframe.toUpperCase() : '';
+        const statusBadge = sig.status && sig.status !== 'ACTIVE' ? ` · ${sig.status.replace('_',' ')}` : '';
+        detailEl.innerHTML = `<b>🤖 Konsensus ${sig.agree_count}/${sig.total_votes} AI · ${sig.verdict}${tfBadge ? ' · TF ' + tfBadge : ''}${statusBadge}:</b> ${(sig.narrative || '').replace(/\n/g,'<br>')}` +
+          (sig.entry != null ? `<div style="margin-top:8px;font-size:11.5px;">Entry server: <b>${fmtPrice(sig.entry)}</b>${sig.sl != null ? ' · SL: <b style="color:var(--down)">' + fmtPrice(sig.sl) + '</b>' : ''}${Array.isArray(sig.tp) && sig.tp[0] != null ? ' · TP1: <b style="color:var(--up)">' + fmtPrice(sig.tp[0]) + '</b>' : ''}</div>` : '') +
+          `<div style="margin-top:6px;font-size:10px;color:var(--text-dim);">Dianalisa oleh: ${modelsShort || 'AI gratis via OpenRouter'}${sig.tf_picks ? ' · TF acuan: ' + sig.tf_picks : ''} · Update server ${updated} WIB</div>`;
       }catch(err){
         detailEl.innerHTML = fallbackText + `<br><br><span style="color:var(--text-dim);font-size:10px;">(Dewan AI gagal dimuat: ${err.message} — pakai kesimpulan sistem sebagai gantinya)</span>`;
       }
@@ -2054,6 +2099,7 @@
     renderSigPairChips();
     renderHero(null);
     loadHeroChart();
+    loadTickerTape();
     runAnalysis();
     scanAllPairs();
     setInterval(runAnalysis, 60000);
