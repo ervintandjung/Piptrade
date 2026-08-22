@@ -311,6 +311,8 @@
   .chip.active{ color:#fff; background: var(--blue); border-color: var(--blue); }
   .filter-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom: 4px; }
   .filter-chip{ font-size: 10.5px; letter-spacing:1px; font-weight:700; color: var(--text-dim); text-transform:uppercase; }
+  .sig-date-head{ font-size: 11px; letter-spacing:0.5px; font-weight:700; color: var(--text-dim); text-transform:uppercase; margin: 16px 2px 2px; }
+  .sig-date-head:first-child{ margin-top: 2px; }
   .count-chip{ font-size: 10.5px; padding: 3px 10px; border-radius:99px; background: rgba(255,255,255,0.06); color: var(--text-dim); }
 
   /* ==== detail ==== */
@@ -607,10 +609,10 @@
   <div id="signalListView">
     <div class="page-title" style="margin-bottom:14px;">Signal</div>
     <div class="filter-row">
-      <span class="filter-chip">HARI INI</span>
+      <span class="filter-chip">SEMUA RIWAYAT</span>
       <span class="count-chip" id="sigCount">0 sinyal</span>
     </div>
-    <div class="sig-list" id="signalList" style="margin-top:14px;"><div class="empty">Belum ada sinyal hari ini.</div></div>
+    <div class="sig-list" id="signalList" style="margin-top:14px;"><div class="empty">Belum ada sinyal.</div></div>
   </div>
 
   <div id="signalDetailView" style="display:none;">
@@ -938,7 +940,9 @@
   // Isi URL Worker kamu di bawah ini (dikasih Cloudflare pas deploy, formatnya
   // https://nama-worker.username.workers.dev). SELAMA INI KOSONG, AI & data harga
   // TIDAK akan jalan — halaman ini gak bisa fetch data langsung dari internet.
-  const VORTEX_WORKER_URL = 'https://h2h-gateway.vinzprostore.workers.dev';
+  // URL worker PipTrade API (worker Cloudflare terpisah, khusus PipTrade,
+  // gak ada hubungannya sama h2h-gateway punya Paycore).
+  const VORTEX_WORKER_URL = 'https://pipworker.vinzprostore.workers.dev';
   // ambang "momentum kuat" biar sinyal gak trickle — makin kecil angkanya, makin gampang
   // sinyal ke-catat (lebih banyak momen kesangkut, tapi juga lebih longgar dari sekadar "kuat banget")
   const MOMENTUM_ADX_MIN = 20;
@@ -960,17 +964,46 @@
     return j.data;
   }
 
-  /* ===================== NAV ===================== */
-  function switchView(view){
+  /* ===================== NAV + TOMBOL BACK (history) ===================== */
+  // Setiap pindah tab/buka detail sinyal dicatet ke history browser (pushState).
+  // Ini yang bikin tombol back Android (WebView.goBack()) ngerti ada "halaman
+  // sebelumnya" buat di-back-in, jadi gak langsung keluar app padahal masih ada
+  // tab/halaman lain yang bisa dibalikin duluan. Baru kalau history-nya abis
+  // (udah balik ke Beranda paling awal), tombol back beneran nutup app.
+  function applyView(view){
     document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active-view', p.dataset.view === view));
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.view === view));
     window.scrollTo({ top:0, behavior:'instant' });
     if(view === 'account'){ closeAccHistory(); renderAccProfileStats(); }
+  }
+  function switchView(view){
+    applyView(view);
     if(view === 'signal') closeDetail();
+    history.pushState({ view }, '', '#' + view);
   }
   document.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => switchView(i.dataset.view)));
   document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => switchView(el.dataset.goto)));
-  switchView('home');
+  applyView('home');
+  history.replaceState({ view: 'home' }, '', '#home');
+
+  window.addEventListener('popstate', (e) => {
+    const state = e.state || { view: 'home' };
+    if(state.detail){
+      const it = HISTORY.find(x => x.id === state.detail);
+      applyView('signal');
+      if(it){
+        detailItem = normalize(it); detailTf = '1h';
+        document.getElementById('signalListView').style.display = 'none';
+        document.getElementById('signalDetailView').style.display = 'block';
+        renderDetail();
+      } else {
+        closeDetail();
+      }
+    } else {
+      applyView(state.view || 'home');
+      closeDetail();
+    }
+  });
 
   document.querySelectorAll('#indTabs .chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -1458,8 +1491,11 @@
 
   async function logSignal(pair, type, entry, sl, tps){
     const list = await getHistoryList();
-    const last = list.find(x => x.pair === pair.label && x.status === 'ACTIVE');
-    if(last && Math.abs(last.entry - entry) / entry < 0.0005 && last.type === type) return;
+    // kalau pair ini masih punya sinyal ACTIVE, JANGAN bikin sinyal baru sama sekali —
+    // biarin yang lama jalan terus sampai beneran ketutup (kena SL, atau tembus TP4).
+    // Ini yang mastiin gak ada sinyal dobel buat pair yang sama selama yang lama masih live.
+    const hasActive = list.some(x => x.pair === pair.label && x.status === 'ACTIVE');
+    if(hasActive) return;
     list.unshift({
       id: Date.now() + '-' + pair.label,
       pair: pair.label, sym: pair.sym, kind: pair.kind, pip: pair.pip, tv: pair.tv,
@@ -1499,7 +1535,18 @@
           break;
         }
       }
-      if(it.tpHit >= 4){ it.status = 'TP_HIT'; changed = true; }
+      if(it.tpHit >= 4){ it.status = 'TP_HIT'; changed = true; continue; }
+
+      // udah kena TP1-TP3 tapi TP4 kelihatannya udah gak kekejar lagi — harga balik
+      // ngasih balik minimal 1 level TP (turun/naik lagi ke level TP2). Daripada nunggu
+      // balik ke SL lama (jauh) atau nunggu TP4 yang udah gak realistis, langsung tutup
+      // sinyal sekarang sebagai menang di TP3.
+      if(it.tpHit === 3){
+        const tp2 = it.tp[1];
+        if((price - tp2) * dir <= 0){
+          it.status = 'TP_HIT'; changed = true; continue;
+        }
+      }
     }
     if(changed) await saveHistoryList(list);
     HISTORY = list;
@@ -1576,6 +1623,16 @@
     host.querySelector('.live-hero').addEventListener('click', () => openDetail(it.id));
   }
 
+  function sigDateLabel(d){
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startYesterday = new Date(startToday); startYesterday.setDate(startYesterday.getDate() - 1);
+    const startThat = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if(startThat.getTime() === startToday.getTime()) return 'Hari Ini';
+    if(startThat.getTime() === startYesterday.getTime()) return 'Kemarin';
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+  }
+
   function renderAllSignalViews(){
     renderHomeStats();
     renderLiveSignalHero();
@@ -1585,11 +1642,26 @@
       : '<div class="empty">Menganalisis pasar — sinyal pertama lagi disiapin.</div>';
     bindCards(home);
 
-    const start = new Date(); start.setHours(0,0,0,0);
-    const today = HISTORY.filter(x => new Date(x.time) >= start);
+    // Riwayat sinyal semua tanggal ditampilin di sini, dikelompokin per hari (Hari Ini,
+    // Kemarin, tanggal-tanggal sebelumnya) — BUKAN cuma hari ini doang. Data lama tetep
+    // ada, cuma dikelompokin biar rapi, gak ke-hapus/ke-hide pas ganti hari.
     const listEl = document.getElementById('signalList');
-    document.getElementById('sigCount').textContent = today.length + ' sinyal';
-    listEl.innerHTML = today.length ? today.map(signalCard).join('') : '<div class="empty">Belum ada sinyal hari ini.</div>';
+    document.getElementById('sigCount').textContent = HISTORY.length + ' sinyal';
+    if(!HISTORY.length){
+      listEl.innerHTML = '<div class="empty">Belum ada sinyal.</div>';
+    } else {
+      let html = '';
+      let lastLabel = null;
+      for(const it of HISTORY){
+        const label = sigDateLabel(new Date(it.time));
+        if(label !== lastLabel){
+          html += `<div class="sig-date-head">${label}</div>`;
+          lastLabel = label;
+        }
+        html += signalCard(it);
+      }
+      listEl.innerHTML = html;
+    }
     bindCards(listEl);
   }
 
@@ -1606,13 +1678,14 @@
     document.getElementById('signalDetailView').style.display = 'none';
     document.getElementById('signalListView').style.display = 'block';
   }
-  document.getElementById('detailBack').addEventListener('click', closeDetail);
+  document.getElementById('detailBack').addEventListener('click', () => history.back());
 
   function openDetail(id){
     const it = HISTORY.find(x => x.id === id);
     if(!it) return;
     detailItem = normalize(it); detailTf = '1h';
     switchViewToSignalDetail();
+    history.pushState({ view:'signal', detail:id }, '', '#signal-detail');
   }
   function switchViewToSignalDetail(){
     document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active-view', p.dataset.view === 'signal'));
